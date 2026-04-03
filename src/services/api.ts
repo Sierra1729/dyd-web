@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://dyd-web.onrender.com";
 
 async function request(endpoint: string, options: RequestInit) {
   try {
