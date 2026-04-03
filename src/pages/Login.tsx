@@ -10,6 +10,7 @@ import {
   type ForgotPasswordData,
 } from "@/lib/validators";
 import { Link, useNavigate } from "react-router-dom";
+import { apiService } from "@/services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -55,19 +56,18 @@ const Login = () => {
       const token = await user.getIdToken(true);
 
       // ✅ Check if user profile already exists in backend
-      const res = await fetch("http://localhost:5000/api/getUser", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.status === 404) {
-        // Profile not saved yet — could happen if they skipped VerifyEmail page
-        // Send them back to verify page to complete profile save
-        toast.error("Profile not found. Please complete verification.");
-        navigate("/verify-email");
-        return;
+      let userData;
+      try {
+        userData = await apiService.getUser(token);
+      } catch (err: any) {
+        if (err.message === "User not found") {
+          // Profile not saved yet — could happen if they skipped VerifyEmail page
+          toast.error("Profile not found. Please complete verification.");
+          navigate("/verify-email");
+          return;
+        }
+        throw err;
       }
-
-      const userData = await res.json();
 
       toast.success("Login successful 🚀");
 

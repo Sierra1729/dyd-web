@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { sendEmailVerification } from "firebase/auth";
+import { apiService } from "@/services/api";
 
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -47,21 +48,7 @@ const VerifyEmail = () => {
       }
 
       // 🔥 Send to backend — save user profile now that email is verified
-      const response = await fetch("http://localhost:5000/api/saveUser", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ Bearer prefix required
-        },
-        body: JSON.stringify(storedData),
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || "Failed to save user profile");
-      }
-
-      const result = await response.json();
+      const result = await apiService.saveUser(storedData, token);
 
       // 🧹 Cleanup localStorage
       localStorage.removeItem("userData");
