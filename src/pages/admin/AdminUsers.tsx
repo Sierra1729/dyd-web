@@ -12,6 +12,12 @@ interface UserData {
   id: string;
   fullName: string;
   email: string;
+  rollNo?: string;
+  semester?: number;
+  enrollmentYear?: number;
+  domain?: string;
+  specializations?: string[];
+  interests?: string[];
   department?: string;
   school?: string;
   phone?: string;
@@ -26,6 +32,11 @@ const AdminUsers = () => {
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<UserData | null>(null);
+  
+  // Advanced Filters
+  const [filterSemester, setFilterSemester] = useState<string>("all");
+  const [filterYear, setFilterYear] = useState<string>("all");
+  const [filterDomain, setFilterDomain] = useState<string>("all");
 
   const fetchUsers = async () => {
     try {
@@ -79,11 +90,21 @@ const AdminUsers = () => {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase()) ||
-    u.department?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = 
+      u.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase()) ||
+      u.rollNo?.toLowerCase().includes(search.toLowerCase()) ||
+      u.domain?.toLowerCase().includes(search.toLowerCase());
+
+    const matchesSemester = filterSemester === "all" || String(u.semester) === filterSemester;
+    const matchesYear = filterYear === "all" || String(u.enrollmentYear) === filterYear;
+    const matchesDomain = filterDomain === "all" || u.domain === filterDomain;
+
+    return matchesSearch && matchesSemester && matchesYear && matchesDomain;
+  });
+
+  const uniqueDomains = Array.from(new Set(users.map(u => u.domain).filter(Boolean)));
 
   return (
     <div className="relative min-h-screen px-4 py-12 pt-24 md:pt-28">
@@ -97,15 +118,47 @@ const AdminUsers = () => {
             <p className="text-muted-foreground">View and manage all university candidates</p>
           </div>
           
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input 
-              type="text"
-              placeholder="Search users..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-secondary/30 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm text-foreground placeholder:text-muted-foreground/30"
-            />
+          <div className="flex flex-wrap gap-3 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input 
+                type="text"
+                placeholder="Search name, email, roll no..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-secondary/30 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm text-foreground placeholder:text-muted-foreground/30"
+              />
+            </div>
+
+            <select 
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+              className="px-4 py-2 rounded-xl bg-secondary/30 border border-white/10 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="all">All Years</option>
+              <option value="23">2023</option>
+              <option value="24">2024</option>
+              <option value="25">2025</option>
+              <option value="26">2026</option>
+            </select>
+
+            <select 
+              value={filterSemester}
+              onChange={(e) => setFilterSemester(e.target.value)}
+              className="px-4 py-2 rounded-xl bg-secondary/30 border border-white/10 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="all">All Semesters</option>
+              {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={s}>Sem {s}</option>)}
+            </select>
+
+            <select 
+              value={filterDomain}
+              onChange={(e) => setFilterDomain(e.target.value)}
+              className="px-4 py-2 rounded-xl bg-secondary/30 border border-white/10 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 max-w-[150px]"
+            >
+              <option value="all">All Domains</option>
+              {uniqueDomains.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
           </div>
         </motion.div>
 
@@ -161,9 +214,21 @@ const AdminUsers = () => {
                       </td>
                       <td className="p-4">
                         <div className="space-y-0.5">
-                          <p className="text-sm font-medium text-foreground">{user.department || "No Dept"}</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {user.rollNo || "No Roll No"}
+                          </p>
                           <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                            <School className="w-3 h-3" /> {user.school || "N/A"}
+                            {user.semester ? `Semester ${user.semester}` : "Sem N/A"} • 20{user.enrollmentYear}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="space-y-0.5">
+                          <p className="text-sm font-medium text-foreground">
+                            {user.domain || user.department || "General"}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <School className="w-3 h-3" /> {user.school || "Main Campus"}
                           </p>
                         </div>
                       </td>
@@ -242,14 +307,6 @@ const AdminUsers = () => {
                     />
                   </div>
                   <div className="space-y-2 text-left">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase block">School</label>
-                    <input 
-                      className="w-full bg-secondary/30 border border-white/10 rounded-xl px-4 py-2.5 text-foreground focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                      value={editingUser.school}
-                      onChange={(e) => setEditingUser({...editingUser, school: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2 text-left">
                     <label className="text-xs font-semibold text-muted-foreground uppercase block">Phone</label>
                     <input 
                       className="w-full bg-secondary/30 border border-white/10 rounded-xl px-4 py-2.5 text-foreground focus:ring-2 focus:ring-primary/50 outline-none transition-all"
@@ -265,6 +322,28 @@ const AdminUsers = () => {
                       value={editingUser.dob ? editingUser.dob.split('T')[0] : ''}
                       onChange={(e) => setEditingUser({...editingUser, dob: e.target.value})}
                     />
+                  </div>
+                  <div className="space-y-2 text-left">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase block">Roll Number</label>
+                    <input 
+                      className="w-full bg-secondary/30 border border-white/10 rounded-xl px-4 py-2.5 text-foreground focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                      value={editingUser.rollNo || ''}
+                      onChange={(e) => setEditingUser({...editingUser, rollNo: e.target.value})}
+                      placeholder="DYD-24-XXX"
+                    />
+                  </div>
+                  <div className="space-y-2 text-left">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase block">Semester</label>
+                    <select 
+                      className="w-full h-[46px] bg-secondary/30 border border-white/10 rounded-xl px-4 text-foreground focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                      value={editingUser.semester || ''}
+                      onChange={(e) => setEditingUser({...editingUser, semester: Number(e.target.value)})}
+                    >
+                      <option value="">Select Semester</option>
+                      {[1,2,3,4,5,6,7,8].map(s => (
+                        <option key={s} value={s}>Semester {s}</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div className="col-span-2 pt-4 flex gap-3">

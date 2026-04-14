@@ -51,16 +51,19 @@ export const CandidateForm = () => {
       await sendEmailVerification(user);
 
       // 💾 Step 3: Store form data in localStorage so VerifyEmail page can send it to backend
-      localStorage.setItem(
-        "userData",
-        JSON.stringify({
-          fullName: data.fullName,
-          fatherName: data.fatherName,
-          school: data.institution,
-          dob: data.dateOfBirth,
-          phone: data.phone,
-        })
-      );
+      const userData = {
+        fullName: data.fullName,
+        fatherName: data.fatherName,
+        rollNo: data.rollNo,
+        enrollmentYear: Number(data.enrollmentYear),
+        semester: Number(data.semester),
+        domain: data.domain || "",
+        dob: data.dateOfBirth,
+        phone: data.phone,
+      };
+
+      console.log("📝 Captured Registration Data:", userData);
+      localStorage.setItem("userData", JSON.stringify(userData));
 
       toast.success("Verification email sent! Check your inbox 📩");
 
@@ -122,20 +125,81 @@ export const CandidateForm = () => {
         )}
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="rollNo" className="text-sm text-foreground">
+            Roll Number
+          </Label>
+          <Input
+            id="rollNo"
+            placeholder="DYD-24-001"
+            {...register("rollNo")}
+            className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
+          />
+          {errors.rollNo && (
+            <p className="text-xs text-destructive">{errors.rollNo.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="enrollmentYear" className="text-sm text-foreground">
+            Enrollment Year
+          </Label>
+          <select
+            id="enrollmentYear"
+            {...register("enrollmentYear")}
+            className="w-full h-10 px-3 rounded-xl bg-secondary/50 border-0 focus-visible:ring-2 focus-visible:ring-primary/30 text-sm text-foreground outline-none"
+          >
+            <option value="">Select Year</option>
+            {[23, 24, 25, 26].map((y) => (
+              <option key={y} value={y}>
+                20{y}
+              </option>
+            ))}
+          </select>
+          {errors.enrollmentYear && (
+            <p className="text-xs text-destructive">{errors.enrollmentYear.message}</p>
+          )}
+        </div>
+      </div>
+
       <div className="space-y-1.5">
-        <Label htmlFor="institution" className="text-sm text-foreground">
-          School / Institution
+        <Label htmlFor="semester" className="text-sm text-foreground">
+          Current Semester
         </Label>
-        <Input
-          id="institution"
-          placeholder="Enter your institution"
-          {...register("institution")}
-          className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
-        />
-        {errors.institution && (
-          <p className="text-xs text-destructive">{errors.institution.message}</p>
+        <select
+          id="semester"
+          {...register("semester")}
+          className="w-full h-10 px-3 rounded-xl bg-secondary/50 border-0 focus-visible:ring-2 focus-visible:ring-primary/30 text-sm text-foreground outline-none"
+        >
+          <option value="">Select Semester</option>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+            <option key={s} value={s}>
+              Semester {s}
+            </option>
+          ))}
+        </select>
+        {errors.semester && (
+          <p className="text-xs text-destructive">{errors.semester.message}</p>
         )}
       </div>
+
+      {(Number(watch("enrollmentYear")) === 23 && Number(watch("semester")) >= 5) && (
+        <div className="space-y-1.5">
+          <Label htmlFor="domain" className="text-sm text-foreground">
+            Major Domain
+          </Label>
+          <Input
+            id="domain"
+            placeholder="e.g. Computer Science"
+            {...register("domain")}
+            className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
+          />
+          {errors.domain && (
+            <p className="text-xs text-destructive">{errors.domain.message}</p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <Label className="text-sm text-foreground">Date of Birth</Label>

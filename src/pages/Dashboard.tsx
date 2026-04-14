@@ -151,18 +151,20 @@ const Dashboard = () => {
             <div className="grid sm:grid-cols-2 gap-4">
               <GlassCard className="p-6 space-y-3">
                 <div className="flex items-center gap-2 text-primary">
-                  <School className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Assigned School</span>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Roll Number</span>
                 </div>
-                <p className="text-lg font-medium text-foreground">{userData?.school || "Not Assigned"}</p>
+                <p className="text-lg font-bold text-foreground">{userData?.rollNo || "Not Assigned"}</p>
               </GlassCard>
 
               <GlassCard className="p-6 space-y-3">
                 <div className="flex items-center gap-2 text-primary">
                   <Landmark className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Department</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">Semester</span>
                 </div>
-                <p className="text-lg font-medium text-foreground">{userData?.department || "General Administration"}</p>
+                <p className="text-lg font-bold text-foreground">
+                  {userData?.semester ? `Semester ${userData.semester}` : "Not Set"}
+                </p>
               </GlassCard>
 
               <GlassCard className="p-6 space-y-3">

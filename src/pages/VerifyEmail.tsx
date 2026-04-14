@@ -48,6 +48,7 @@ const VerifyEmail = () => {
       }
 
       // 🔥 Send to backend — save user profile now that email is verified
+      console.log("🚀 Sending Final Registration Data to Backend:", storedData);
       const result = await apiService.saveUser(storedData, token);
 
       // 🧹 Cleanup localStorage

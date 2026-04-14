@@ -74,8 +74,20 @@ const Login = () => {
       // ✅ Role-based redirect
       navigate(userData.role === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (error: any) {
-      console.error(error);
-      toast.error("Invalid credentials");
+      console.error("Login Error:", error);
+      
+      if (error.code?.startsWith("auth/")) {
+        // Firebase Auth Specific Errors
+        const msg = error.code === "auth/invalid-credential" 
+          ? "Invalid email or password" 
+          : error.message;
+        toast.error(msg);
+      } else if (error.message?.includes("Failed to fetch") || error.code === "ECONNREFUSED") {
+        // Backend connection error
+        toast.error("Cloud connection failed. Please ensure the backend is running.");
+      } else {
+        toast.error(error.message || "An unexpected error occurred during login");
+      }
     } finally {
       setLoading(false);
     }

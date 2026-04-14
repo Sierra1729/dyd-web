@@ -4,11 +4,22 @@ export const candidateSchema = z.object({
   fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().trim().email("Please enter a valid email"),
   fatherName: z.string().trim().min(2, "Father's name is required").max(100),
-  institution: z.string().trim().min(2, "Institution is required").max(200),
+  rollNo: z.string().trim().regex(/^DYD-(23|24|25|26)-\d+$/, "Format: DYD-YY-NN (e.g., DYD-24-123)"),
+  enrollmentYear: z.coerce.number().min(23).max(26),
+  semester: z.coerce.number().min(1).max(8),
+  domain: z.string().trim().optional(),
   dateOfBirth: z.date({ required_error: "Date of birth is required" }),
   phone: z.string().trim().regex(/^\+?[0-9]{10,15}$/, "Enter a valid phone number"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
+}).refine((data) => {
+  if (data.enrollmentYear === 23 && data.semester >= 5) {
+    return !!data.domain && data.domain.length >= 2;
+  }
+  return true;
+}, {
+  message: "Major Domain is required for your Year/Semester",
+  path: ["domain"],
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],

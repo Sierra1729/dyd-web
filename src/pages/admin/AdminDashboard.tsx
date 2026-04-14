@@ -16,7 +16,8 @@ import {
   ResponsiveContainer, 
   Cell,
   PieChart,
-  Pie
+  Pie,
+  Legend
 } from "recharts";
 
 const COLORS = ["#8B5CF6", "#D946EF", "#F97316", "#0EA5E9", "#10B981"];
@@ -25,6 +26,8 @@ interface AnalyticsData {
   totalCandidates: number;
   schoolCount: Record<string, number>;
   departmentCount: Record<string, number>;
+  interestCount: Record<string, number>;
+  specializationCount: Record<string, number>;
 }
 
 const AdminDashboard = () => {
@@ -56,14 +59,21 @@ const AdminDashboard = () => {
     return () => unsubscribe();
   }, []);
 
-  const schoolData = data ? Object.entries(data.schoolCount).map(([name, value]) => ({ name, value })) : [];
-  const deptData = data ? Object.entries(data.departmentCount).map(([name, value]) => ({ name, value })) : [];
+  const interestData = data ? Object.entries(data.interestCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([name, value]) => ({ name, value })) : [];
+
+  const specData = data ? Object.entries(data.specializationCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, value]) => ({ name, value })) : [];
 
   const stats = [
     { label: "Total Candidates", value: data?.totalCandidates || 0, icon: Users, color: "gradient-primary" },
-    { label: "Active Schools", value: schoolData.length, icon: School, color: "bg-accent" },
-    { label: "Departments", value: deptData.length, icon: Landmark, color: "bg-secondary" },
-    { label: "Growth Rate", value: "+12%", icon: TrendingUp, color: "gradient-primary" },
+    { label: "Top Interest", value: interestData[0]?.name || "N/A", icon: TrendingUp, color: "bg-accent" },
+    { label: "Specializations", value: specData.length, icon: Landmark, color: "bg-secondary" },
+    { label: "Enrollment Year", value: "2024", icon: School, color: "gradient-primary" },
   ];
 
   return (
@@ -108,25 +118,24 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* School Distribution Chart */}
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }}>
-            <GlassCard className="p-8 h-[400px] flex flex-col">
-              <h3 className="text-lg font-semibold mb-6">Candidates per School</h3>
+            <GlassCard className="p-8 h-[450px] flex flex-col">
+              <h3 className="text-lg font-semibold mb-6">Top Student Interests</h3>
               <div className="flex-1 w-full">
                 {loading ? (
                   <div className="h-full flex items-center justify-center text-muted-foreground">Loading chart...</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={schoolData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <BarChart data={interestData} layout="vertical" margin={{ left: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                      <XAxis type="number" stroke="#94a3b8" fontSize={10} hide />
+                      <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={12} width={100} tickLine={false} axisLine={false} />
                       <Tooltip 
                         contentStyle={{ backgroundColor: "rgba(15, 23, 42, 0.9)", border: "none", borderRadius: "12px", color: "#fff" }}
                         cursor={{ fill: "rgba(255,255,255,0.05)" }}
                       />
-                      <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                        {schoolData.map((_, index) => (
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                        {interestData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Bar>
@@ -137,10 +146,9 @@ const AdminDashboard = () => {
             </GlassCard>
           </motion.div>
 
-          {/* Department Distribution Chart */}
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }}>
-            <GlassCard className="p-8 h-[400px] flex flex-col">
-              <h3 className="text-lg font-semibold mb-6">Department Distribution</h3>
+            <GlassCard className="p-8 h-[450px] flex flex-col">
+              <h3 className="text-lg font-semibold mb-6">Specialization Distribution</h3>
               <div className="flex-1 w-full">
                 {loading ? (
                   <div className="h-full flex items-center justify-center text-muted-foreground">Loading chart...</div>
@@ -148,21 +156,22 @@ const AdminDashboard = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={deptData}
+                        data={specData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
+                        innerRadius={80}
+                        outerRadius={100}
+                        paddingAngle={10}
                         dataKey="value"
                       >
-                        {deptData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        {specData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                         ))}
                       </Pie>
                       <Tooltip 
                         contentStyle={{ backgroundColor: "rgba(15, 23, 42, 0.9)", border: "none", borderRadius: "12px", color: "#fff" }}
                       />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" />
                     </PieChart>
                   </ResponsiveContainer>
                 )}

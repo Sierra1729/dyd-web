@@ -26,6 +26,12 @@ router.post("/saveUser", verifyToken, async (req, res) => {
       dob,
       phone,
       department,
+      rollNo,
+      semester,
+      enrollmentYear,
+      domain,
+      interests,
+      specializations,
     } = req.body;
 
     const isAdminEmail = req.user.email.endsWith("@jammuuniversity.ac.in");
@@ -42,6 +48,12 @@ router.post("/saveUser", verifyToken, async (req, res) => {
       dob: dob ? new Date(dob).toISOString() : "",
       phone: phone || "",
       department: department || "",
+      rollNo: rollNo || "",
+      semester: semester ? Number(semester) : null,
+      enrollmentYear: enrollmentYear ? Number(enrollmentYear) : null,
+      domain: domain || "",
+      interests: interests || [],
+      specializations: specializations || [],
 
       createdAt: new Date().toISOString(),
     };
@@ -98,7 +110,16 @@ router.get("/getUser", verifyToken, async (req, res) => {
 router.put("/updateProfile", verifyToken, async (req, res) => {
   try {
     const uid = req.user.uid;
-    const { fullName, phone, dob, fatherName, school, department } = req.body;
+    const { 
+      fullName, 
+      phone, 
+      dob, 
+      fatherName, 
+      school, 
+      department,
+      interests,
+      specializations
+    } = req.body;
 
     // Check if user is admin or candidate
     let collectionName = "admins";
@@ -120,6 +141,8 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       fatherName: fatherName || doc.data().fatherName,
       school: school || doc.data().school,
       department: department || doc.data().department,
+      interests: interests || doc.data().interests || [],
+      specializations: specializations || doc.data().specializations || [],
       updatedAt: new Date().toISOString(),
     };
 
@@ -198,6 +221,8 @@ router.get("/analytics", verifyToken, verifyAdmin, async (req, res) => {
 
     let schoolCount = {};
     let departmentCount = {};
+    let interestCount = {};
+    let specializationCount = {};
 
     snapshot.forEach((doc) => {
       const data = doc.data();
@@ -207,8 +232,19 @@ router.get("/analytics", verifyToken, verifyAdmin, async (req, res) => {
       }
 
       if (data.department) {
-        departmentCount[data.department] =
-          (departmentCount[data.department] || 0) + 1;
+        departmentCount[data.department] = (departmentCount[data.department] || 0) + 1;
+      }
+
+      if (data.interests && Array.isArray(data.interests)) {
+        data.interests.forEach(interest => {
+          interestCount[interest] = (interestCount[interest] || 0) + 1;
+        });
+      }
+
+      if (data.specializations && Array.isArray(data.specializations)) {
+        data.specializations.forEach(spec => {
+          specializationCount[spec] = (specializationCount[spec] || 0) + 1;
+        });
       }
     });
 
@@ -216,6 +252,8 @@ router.get("/analytics", verifyToken, verifyAdmin, async (req, res) => {
       totalCandidates,
       schoolCount,
       departmentCount,
+      interestCount,
+      specializationCount,
     });
 
   } catch (error) {
