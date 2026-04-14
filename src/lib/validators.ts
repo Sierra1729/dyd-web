@@ -4,7 +4,7 @@ export const candidateSchema = z.object({
   fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().trim().email("Please enter a valid email"),
   fatherName: z.string().trim().min(2, "Father's name is required").max(100),
-  rollNo: z.string().trim().regex(/^DYD-(23|24|25|26)-\d+$/, "Format: DYD-YY-NN (e.g., DYD-24-123)"),
+  rollNo: z.string().trim().min(1, "Roll number is required"),
   enrollmentYear: z.coerce.number().min(23).max(26),
   semester: z.coerce.number().min(1).max(8),
   domain: z.string().trim().optional(),

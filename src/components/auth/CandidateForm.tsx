@@ -50,7 +50,8 @@ export const CandidateForm = () => {
       // 📧 Step 2: Send verification email
       await sendEmailVerification(user);
 
-      // 💾 Step 3: Store form data in localStorage so VerifyEmail page can send it to backend
+      // 💾 Step 3: Store form data in localStorage
+      // ✅ IMPORTANT: Convert Date to ISO string so it survives JSON serialization
       const userData = {
         fullName: data.fullName,
         fatherName: data.fatherName,
@@ -58,16 +59,19 @@ export const CandidateForm = () => {
         enrollmentYear: Number(data.enrollmentYear),
         semester: Number(data.semester),
         domain: data.domain || "",
-        dob: data.dateOfBirth,
+        // ✅ Convert Date object to ISO string — Date objects don't survive JSON.stringify correctly
+        dob: data.dateOfBirth instanceof Date
+          ? data.dateOfBirth.toISOString()
+          : String(data.dateOfBirth),
         phone: data.phone,
       };
 
-      console.log("📝 Captured Registration Data:", userData);
+      console.log("📝 Saving to localStorage:", userData);
       localStorage.setItem("userData", JSON.stringify(userData));
 
       toast.success("Verification email sent! Check your inbox 📩");
 
-      // 👉 Step 4: Go to verify page — do NOT signOut, currentUser needed for user.reload()
+      // 👉 Step 4: Go to verify page
       navigate("/verify-email");
     } catch (error: any) {
       console.error(error);
