@@ -69,6 +69,13 @@ const Login = () => {
         throw err;
       }
 
+      // 🔐 Check Admin Approval Status (Step 4)
+      if (userData.isApproved === false) {
+        await auth.signOut();
+        toast.error("Your profile is not yet approved by admin. You will be notified once approved.");
+        return;
+      }
+
       toast.success("Login successful 🚀");
 
       // ✅ Role-based redirect
@@ -109,9 +116,13 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-12 overflow-hidden">
       <CosmicBackground />
-      <div className="w-full max-w-md">
+      
+      {/* Centered Glowing Blob */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-lg h-[80%] max-h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="w-full max-w-md relative z-10">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -176,7 +187,7 @@ const Login = () => {
                         type="email"
                         placeholder="you@example.com"
                         {...forgotForm.register("email")}
-                        className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
+                        className="rounded-xl bg-white/5 dark:bg-black/20 border border-white/10 dark:border-white/5 focus-visible:ring-primary/30 backdrop-blur-md transition-all placeholder:text-muted-foreground/50 h-11"
                       />
                       {forgotForm.formState.errors.email && (
                         <p className="text-xs text-destructive">
@@ -187,7 +198,7 @@ const Login = () => {
                     <Button
                       type="submit"
                       disabled={loading}
-                      className="w-full rounded-xl gradient-primary text-primary-foreground shadow-lg shadow-primary/20 h-11"
+                      className="w-full rounded-xl gradient-primary text-primary-foreground shadow-lg shadow-primary/20 h-11 hover:shadow-antigravity-hover transition-all hover:brightness-110 active:scale-[0.98]"
                     >
                       {loading ? (
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -213,11 +224,11 @@ const Login = () => {
                 className="space-y-6"
               >
                 <div className="text-center space-y-2">
-                  <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                    Welcome back
+                  <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center justify-center gap-2">
+                    Welcome back <span className="w-2 h-2 rounded-full gradient-primary animate-pulse-glow" />
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    Sign in to your account
+                    Sign in to your <span className="text-gradient font-medium">academic portal</span>
                   </p>
                 </div>
 
@@ -241,7 +252,7 @@ const Login = () => {
                           : "you@example.com"
                       }
                       {...loginForm.register("email")}
-                      className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
+                      className="rounded-xl bg-white/5 dark:bg-black/20 border border-white/10 dark:border-white/5 focus-visible:ring-primary/30 backdrop-blur-md transition-all placeholder:text-muted-foreground/50 h-11"
                     />
                     {loginForm.formState.errors.email && (
                       <p className="text-xs text-destructive">
@@ -266,12 +277,12 @@ const Login = () => {
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter password"
                         {...loginForm.register("password")}
-                        className="rounded-xl bg-secondary/50 border-0 pr-10 focus-visible:ring-primary/30"
+                        className="rounded-xl bg-white/5 dark:bg-black/20 border border-white/10 dark:border-white/5 pr-10 focus-visible:ring-primary/30 backdrop-blur-md transition-all placeholder:text-muted-foreground/50 h-11"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {showPassword ? (
                           <EyeOff className="w-4 h-4" />
@@ -290,7 +301,7 @@ const Login = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-xl gradient-primary text-primary-foreground shadow-lg shadow-primary/20 h-11"
+                    className="w-full rounded-xl gradient-primary text-primary-foreground shadow-lg shadow-primary/20 h-11 hover:shadow-antigravity-hover transition-all hover:brightness-110 active:scale-[0.98]"
                   >
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />

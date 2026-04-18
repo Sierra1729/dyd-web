@@ -4,6 +4,7 @@ const router = express.Router();
 const { admin, db } = require("../config/firebase");
 const verifyToken = require("../middleware/auth");
 const verifyAdmin = require("../middleware/admin");
+const { sendApprovalEmail } = require("../config/mailer");
 
 
 // ✅ SAVE USER — called AFTER email verification
@@ -59,6 +60,11 @@ router.post("/saveUser", verifyToken, async (req, res) => {
 
       interests: Array.isArray(interests) ? interests : [],
       specializations: Array.isArray(specializations) ? specializations : [],
+
+      // ✅ Approval System Fields
+      isApproved: role === "admin" ? true : false,
+      status: role === "admin" ? "approved" : "pending",
+      approvedAt: role === "admin" ? new Date().toISOString() : null,
 
       createdAt: new Date().toISOString(),
     };
@@ -233,6 +239,60 @@ router.get("/analytics", verifyToken, verifyAdmin, async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error fetching analytics" });
+  }
+});
+
+
+// 🔐 ADMIN ONLY — APPROVE CANDIDATE
+router.patch("/candidate/:id/approve", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const docRef = db.collection("candidates").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ message: "Candidate not found" });
+    }
+
+    const userData = doc.data();
+
+    await docRef.update({
+      isApproved: true,
+      status: "approved",
+      approvedAt: new Date().toISOString(),
+    });
+
+    // 📧 Send Notification Email
+    console.log(`🚀 Sending approval email to: ${userData.email}`);
+    await sendApprovalEmail(userData.email, userData.fullName);
+
+    return res.json({ 
+      success: true, 
+      message: "Candidate approved successfully and email sent" 
+    });
+  } catch (error) {
+    console.error("❌ Approval Error:", error);
+    return res.status(500).json({ message: "Error approving candidate" });
+  }
+});
+
+
+// 🔐 ADMIN ONLY — REJECT CANDIDATE
+router.patch("/candidate/:id/reject", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.collection("candidates").doc(id).update({
+      isApproved: false,
+      status: "rejected",
+    });
+
+    return res.json({ 
+      success: true, 
+      message: "Candidate rejected successfully" 
+    });
+  } catch (error) {
+    console.error("❌ Rejection Error:", error);
+    return res.status(500).json({ message: "Error rejecting candidate" });
   }
 });
 

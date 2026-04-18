@@ -95,4 +95,34 @@ export const apiService = {
       },
       body: JSON.stringify(data),
     }),
+
+  // 🔐 Approve candidate (admin)
+
+  aapproveCandidate: async (id: string, token: string) => {
+    const res = await fetch(`${API_URL}/approve/${id}`, {
+      method: "PUT", // ✅ MUST be PUT
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("❌ API Error:", text);
+      throw new Error("Approval failed");
+    }
+
+    return res.json();
+  },
+
+
+  // 🔐 Reject candidate (admin)
+  rejectCandidate: (id: string, token: string) =>
+    request(`/candidate/${id}/reject`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
 };

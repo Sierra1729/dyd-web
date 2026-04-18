@@ -5,8 +5,7 @@ import { auth } from "../firebase";
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AuthToggle } from "@/components/auth/AuthToggle";
-import { CandidateForm } from "@/components/auth/CandidateForm";
-import { AdminForm } from "@/components/auth/AdminForm";
+import { SignUpForm } from "@/components/auth/SignUpForm";
 import { ArrowLeft } from "lucide-react";
 
 const Register = () => {
@@ -51,7 +50,7 @@ const Register = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {role === "candidate" ? <CandidateForm /> : <AdminForm />}
+            <SignUpForm role={role} />
           </motion.div>
 
           <p className="text-center text-sm text-muted-foreground">

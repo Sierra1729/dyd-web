@@ -1,25 +1,23 @@
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { auth } from "../../firebase";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { candidateSchema, type CandidateData } from "@/lib/validators";
-import { PasswordStrength } from "./PasswordStrength";
+import { candidateProfileSchema, type CandidateProfileData } from "@/lib/validators";
+import { auth } from "../../firebase";
+import { signOut } from "firebase/auth";
+import { apiService } from "@/services/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Loader2, Eye, EyeOff } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-export const CandidateForm = () => {
+export const CandidateProfileForm = () => {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const {
@@ -28,30 +26,20 @@ export const CandidateForm = () => {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<CandidateData>({
-    resolver: zodResolver(candidateSchema),
+  } = useForm<CandidateProfileData>({
+    resolver: zodResolver(candidateProfileSchema),
   });
 
-  const password = watch("password", "");
   const dob = watch("dateOfBirth");
 
-  const onSubmit = async (data: CandidateData) => {
+  const onSubmit = async (data: CandidateProfileData) => {
     setLoading(true);
     try {
-      // 🔐 Step 1: Create Firebase user
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
+      const user = auth.currentUser;
+      if (!user) throw new Error("Session expired. Please log in again.");
+      
+      const token = await user.getIdToken(true);
 
-      const user = userCredential.user;
-
-      // 📧 Step 2: Send verification email
-      await sendEmailVerification(user);
-
-      // 💾 Step 3: Store form data in localStorage
-      // ✅ IMPORTANT: Convert Date to ISO string so it survives JSON serialization
       const userData = {
         fullName: data.fullName,
         fatherName: data.fatherName,
@@ -59,23 +47,20 @@ export const CandidateForm = () => {
         enrollmentYear: Number(data.enrollmentYear),
         semester: Number(data.semester),
         domain: data.domain || "",
-        // ✅ Convert Date object to ISO string — Date objects don't survive JSON.stringify correctly
         dob: data.dateOfBirth instanceof Date
           ? data.dateOfBirth.toISOString()
           : String(data.dateOfBirth),
         phone: data.phone,
       };
 
-      console.log("📝 Saving to localStorage:", userData);
-      localStorage.setItem("userData", JSON.stringify(userData));
+      await apiService.saveUser(userData, token);
 
-      toast.success("Verification email sent! Check your inbox 📩");
-
-      // 👉 Step 4: Go to verify page
-      navigate("/verify-email");
+      await signOut(auth);
+      toast.success("Profile submitted! It is now under review. You will be notified once approved.");
+      navigate("/login");
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || "Registration failed");
+      toast.error(error.message || "Failed to save profile");
     } finally {
       setLoading(false);
     }
@@ -95,22 +80,6 @@ export const CandidateForm = () => {
         />
         {errors.fullName && (
           <p className="text-xs text-destructive">{errors.fullName.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="email" className="text-sm text-foreground">
-          Email Address
-        </Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="you@example.com"
-          {...register("email")}
-          className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
-        />
-        {errors.email && (
-          <p className="text-xs text-destructive">{errors.email.message}</p>
         )}
       </div>
 
@@ -188,7 +157,7 @@ export const CandidateForm = () => {
         )}
       </div>
 
-      {(Number(watch("enrollmentYear")) === 23 && Number(watch("semester")) >= 5) && (
+      {Number(watch("semester")) >= 5 && (
         <div className="space-y-1.5">
           <Label htmlFor="domain" className="text-sm text-foreground">
             Major Domain
@@ -255,64 +224,13 @@ export const CandidateForm = () => {
         )}
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="password" className="text-sm text-foreground">
-          Password
-        </Label>
-        <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Min. 8 characters"
-            {...register("password")}
-            className="rounded-xl bg-secondary/50 border-0 pr-10 focus-visible:ring-primary/30"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
-        </div>
-        <PasswordStrength password={password} />
-        {errors.password && (
-          <p className="text-xs text-destructive">{errors.password.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="confirmPassword" className="text-sm text-foreground">
-          Confirm Password
-        </Label>
-        <div className="relative">
-          <Input
-            id="confirmPassword"
-            type={showConfirm ? "text" : "password"}
-            placeholder="Re-enter password"
-            {...register("confirmPassword")}
-            className="rounded-xl bg-secondary/50 border-0 pr-10 focus-visible:ring-primary/30"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirm(!showConfirm)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
-        </div>
-        {errors.confirmPassword && (
-          <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
-        )}
-      </div>
-
       <Button
         type="submit"
         disabled={loading}
         className="w-full rounded-xl gradient-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all h-11"
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-        {loading ? "Creating account..." : "Create Account"}
+        {loading ? "Saving Profile..." : "Complete Profile"}
       </Button>
     </form>
   );

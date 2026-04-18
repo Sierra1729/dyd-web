@@ -1,100 +1,99 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
-import { sendEmailVerification } from "firebase/auth";
-import { apiService } from "@/services/api";
+import { sendEmailVerification, onAuthStateChanged, User } from "firebase/auth";
 
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { CandidateProfileForm } from "@/components/auth/CandidateProfileForm";
+import { AdminProfileForm } from "@/components/auth/AdminProfileForm";
+import { Button } from "@/components/ui/button";
+import { Mail, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(auth.currentUser);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
 
-  // ✅ Called when user clicks "I have verified my email"
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        setIsVerified(currentUser.emailVerified);
+      }
+      setChecking(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const checkVerification = async () => {
     setLoading(true);
     try {
-      const user = auth.currentUser;
-
       if (!user) {
-        toast.error("Session expired. Please register again.");
-        navigate("/register");
-        return;
-      }
-
-      // 🔁 Reload user to get latest emailVerified status from Firebase
-      await user.reload();
-
-      if (!user.emailVerified) {
-        toast.error("Email not verified yet. Please click the link in your inbox ❌");
-        return;
-      }
-
-      // ✅ Force-refresh token so backend sees email_verified: true
-      const token = await user.getIdToken(true);
-
-      // 💾 Get stored form data saved during registration
-      const storedData = JSON.parse(localStorage.getItem("userData") || "{}");
-
-      if (!storedData || Object.keys(storedData).length === 0) {
-        // No stored data — user might have already completed this step
-        toast.success("Already verified! Redirecting...");
+        toast.error("Session expired. Please sign in or register.");
         navigate("/login");
         return;
       }
 
-      // 🔥 Send to backend — save user profile now that email is verified
-      console.log("🚀 Sending Final Registration Data to Backend:", storedData);
-      const result = await apiService.saveUser(storedData, token);
-
-      // 🧹 Cleanup localStorage
-      localStorage.removeItem("userData");
-
-      toast.success("Email verified & account created 🎉");
-
-      // ✅ Role-based redirect
-      navigate(result.data.role === "admin" ? "/admin/dashboard" : "/dashboard");
+      await user.reload();
+      const updatedUser = auth.currentUser;
+      
+      if (updatedUser?.emailVerified) {
+        setIsVerified(true);
+        toast.success("Email verified! Now, let's complete your profile.");
+      } else {
+        toast.error("Email not verified yet. Please check your inbox 📩");
+      }
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || "Something went wrong");
+      toast.error(error.message || "Failed to check verification status");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔁 Resend verification email
   const resendEmail = async () => {
     try {
-      const user = auth.currentUser;
-
-      if (!user) {
-        toast.error("Session expired. Please register again.");
-        navigate("/register");
-        return;
-      }
-
+      if (!user) return;
       await sendEmailVerification(user);
       toast.success("Verification email sent again 📩");
     } catch (error: any) {
       console.error(error);
-      // Firebase throws if emails are sent too frequently
       if (error.code === "auth/too-many-requests") {
-        toast.error("Too many attempts. Please wait a few minutes and try again.");
+        toast.error("Too many attempts. Please wait a few minutes.");
       } else {
         toast.error("Failed to resend email");
       }
     }
   };
 
-  return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 py-12">
-      <CosmicBackground />
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-      <div className="w-full max-w-md">
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
+
+  const isAdmin = user.email?.endsWith("@jammuuniversity.ac.in");
+
+  return (
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-12 overflow-hidden">
+      <CosmicBackground />
+      
+      {/* Centered Glowing Blob */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-lg h-[80%] max-h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="w-full max-w-lg relative z-10">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -102,60 +101,88 @@ const VerifyEmail = () => {
         >
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
         </motion.div>
 
-        <GlassCard className="text-center space-y-6">
-          {/* ICON */}
-          <motion.div
-            className="w-20 h-20 rounded-full gradient-primary mx-auto flex items-center justify-center shadow-lg"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <Mail className="w-10 h-10 text-primary-foreground" />
-          </motion.div>
+        <GlassCard className="space-y-6">
+          <AnimatePresence mode="wait">
+            {!isVerified ? (
+              <motion.div
+                key="verify-gate"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="text-center space-y-6"
+              >
+                <div className="w-20 h-20 rounded-full gradient-primary mx-auto flex items-center justify-center shadow-lg shadow-primary/20">
+                  <Mail className="w-10 h-10 text-primary-foreground" />
+                </div>
 
-          {/* TEXT */}
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Check your inbox</h1>
-            <p className="text-sm text-muted-foreground">
-              Click the verification link sent to your email, then come back and
-              press the button below.
-            </p>
-          </div>
+                <div className="space-y-2">
+                  <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    Check your inbox
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    We've sent a verification link to <span className="font-medium text-foreground">{user.email}</span>. 
+                    Please click it to keep going.
+                  </p>
+                </div>
 
-          {/* ACTION BUTTON */}
-          <button
-            onClick={checkVerification}
-            disabled={loading}
-            className="w-full h-11 rounded-xl bg-primary text-white flex items-center justify-center gap-2 disabled:opacity-60"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : null}
-            {loading ? "Checking..." : "I have verified my email ✅"}
-          </button>
+                <div className="space-y-3">
+                  <Button
+                    onClick={checkVerification}
+                    disabled={loading}
+                    className="w-full rounded-xl gradient-primary text-primary-foreground shadow-lg shadow-primary/20 h-11 hover:shadow-antigravity-hover transition-all"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
+                    Refresh Status
+                  </Button>
+                  
+                  <button
+                    onClick={resendEmail}
+                    className="text-sm text-primary font-medium hover:underline underline-offset-4"
+                  >
+                    Resend email
+                  </button>
+                </div>
 
-          {/* RESEND */}
-          <p className="text-sm text-muted-foreground">
-            Didn't receive email?{" "}
-            <button
-              onClick={resendEmail}
-              className="text-primary font-medium hover:underline"
-            >
-              Resend
-            </button>
-          </p>
+                <div className="pt-2">
+                  <Link
+                    to="/login"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Use a different email
+                  </Link>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="profile-form"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
+              >
+                <div className="text-center space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
+                    <CheckCircle2 className="w-3 h-3" /> Email Verified
+                  </div>
+                  <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    Complete your profile
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    Just a few more details to set up your {isAdmin ? "admin" : "candidate"} account
+                  </p>
+                </div>
 
-          <Link
-            to="/login"
-            className="inline-flex text-sm text-primary font-medium hover:underline"
-          >
-            Back to login
-          </Link>
+                {isAdmin ? <AdminProfileForm /> : <CandidateProfileForm />}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </GlassCard>
       </div>
     </div>
