@@ -23,7 +23,8 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 import { 
   Tooltip, 
   TooltipContent, 
@@ -40,7 +41,9 @@ import { CandidateProfileForm } from "@/components/auth/CandidateProfileForm";
 import { AdminProfileForm } from "@/components/auth/AdminProfileForm";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
