@@ -55,8 +55,10 @@ const Login = () => {
       // ✅ Force-refresh token so backend sees emailVerified: true
       const token = await user.getIdToken(true);
 
+      let userData;
       try {
         userData = await apiService.getUser(token);
+
       } catch (err: any) {
         if (err.message === "User not found") {
           // Profile not saved yet — direct to profile page to complete it
