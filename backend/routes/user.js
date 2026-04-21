@@ -115,9 +115,15 @@ router.get("/getUser", verifyToken, async (req, res) => {
       doc = await db.collection("candidates").doc(uid).get();
     }
 
+    // ⚡️ FALLBACK: Check legacy 'users' collection (for older approved accounts)
+    if (!doc.exists) {
+      doc = await db.collection("users").doc(uid).get();
+    }
+
     if (!doc.exists) {
       return res.status(404).json({ message: "User not found" });
     }
+
 
     return res.json(doc.data());
 
