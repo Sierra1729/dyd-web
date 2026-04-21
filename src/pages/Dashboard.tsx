@@ -25,9 +25,14 @@ const Dashboard = () => {
       }
       
       setUserData(profile);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Profile fetch error:", error);
-      toast.error("Failed to load profile details");
+      if (error.message?.includes("User not found") || error.status === 404) {
+        toast.info("Please complete your profile to continue");
+        navigate("/profile");
+      } else {
+        toast.error("Failed to load profile details");
+      }
     } finally {
       setLoading(false);
     }
@@ -60,8 +65,10 @@ const Dashboard = () => {
     <div className="relative min-h-screen px-4 py-8 md:py-12 pt-24 md:pt-28">
       <CosmicBackground />
       <Navbar />
-      
+
       <div className="max-w-5xl mx-auto space-y-8">
+
+
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
@@ -128,23 +135,52 @@ const Dashboard = () => {
             className="lg:col-span-2 space-y-6"
           >
             {/* Status Card */}
-            <GlassCard className="p-8 relative overflow-hidden group">
+            <GlassCard className={`p-8 relative overflow-hidden group border-l-4 ${
+              userData?.status === "approved" ? "border-l-emerald-500" : 
+              userData?.status === "rejected" ? "border-l-destructive" : 
+              "border-l-amber-500"
+            }`}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl -mr-12 -mt-12 group-hover:bg-primary/20 transition-all duration-700" />
               <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-8 h-8 text-primary" />
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${
+                  userData?.status === "approved" ? "bg-emerald-500/10 text-emerald-500" : 
+                  userData?.status === "rejected" ? "bg-destructive/10 text-destructive" : 
+                  "bg-amber-500/10 text-amber-500"
+                }`}>
+                  {userData?.status === "approved" ? <ShieldCheck className="w-8 h-8" /> : 
+                   userData?.status === "rejected" ? <XCircle className="w-8 h-8" /> : 
+                   <Clock className="w-8 h-8" />}
                 </div>
                 <div className="text-center md:text-left space-y-1">
-                  <h3 className="text-xl font-bold text-foreground">Registration Status</h3>
-                  <p className="text-muted-foreground">Your account is currently under institutional review.</p>
+                  <h3 className="text-xl font-bold text-foreground">
+                    {userData?.status === "approved" ? "Verification Successful" : 
+                     userData?.status === "rejected" ? "Action Required" : 
+                     "Registration Status"}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed max-w-md">
+                    {userData?.status === "approved" ? "Your profile has been approved. You now have full access to university portals." : 
+                     userData?.status === "rejected" ? (
+                       <span>
+                         Your profile was not approved. <br/>
+                         <strong className="text-foreground">Feedback: </strong> 
+                         <span className="italic">"{userData?.rejectionRemarks || "Please contact admin for details."}"</span>
+                       </span>
+                     ) : 
+                     "Your account is currently under institutional review. This usually takes 2-3 working days."}
+                  </p>
                 </div>
                 <div className="md:ml-auto">
-                  <span className="px-4 py-1.5 rounded-full bg-amber-500/10 text-amber-500 text-xs font-bold border border-amber-500/20 uppercase tracking-tighter">
-                    Pending Verification
+                  <span className={`px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-tighter ${
+                    userData?.status === "approved" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : 
+                    userData?.status === "rejected" ? "bg-destructive/10 text-destructive border-destructive/20" : 
+                    "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                  }`}>
+                    {userData?.status || "Pending"}
                   </span>
                 </div>
               </div>
             </GlassCard>
+
 
             {/* Details Grid */}
             <h3 className="text-lg font-semibold text-foreground px-2">Academic Information</h3>

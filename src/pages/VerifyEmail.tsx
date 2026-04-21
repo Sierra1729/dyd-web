@@ -162,26 +162,38 @@ const VerifyEmail = () => {
               </motion.div>
             ) : (
               <motion.div
-                key="profile-form"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-6"
+                key="profile-success"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center space-y-6"
               >
-                <div className="text-center space-y-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
-                    <CheckCircle2 className="w-3 h-3" /> Email Verified
-                  </div>
+                <div className="w-20 h-20 rounded-full bg-green-500/10 mx-auto flex items-center justify-center shadow-lg shadow-green-500/20">
+                  <CheckCircle2 className="w-10 h-10 text-green-500" />
+                </div>
+
+                <div className="space-y-2">
                   <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                    Complete your profile
+                    Email Verified!
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    Just a few more details to set up your {isAdmin ? "admin" : "candidate"} account
+                    Your email <span className="font-medium text-foreground">{user.email}</span> has been verified. 
+                    Please login now to complete your profile and access the portal.
                   </p>
                 </div>
 
-                {isAdmin ? <AdminProfileForm /> : <CandidateProfileForm />}
+                <Button
+                  onClick={async () => {
+                    await auth.signOut();
+                    navigate("/login");
+                  }}
+                  className="w-full rounded-xl gradient-primary text-primary-foreground shadow-lg shadow-primary/20 h-11 hover:shadow-antigravity-hover transition-all"
+                >
+                  Go to Login
+                </Button>
+
               </motion.div>
             )}
+
           </AnimatePresence>
         </GlassCard>
       </div>

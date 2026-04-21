@@ -19,7 +19,8 @@ import {
   Info,
   Award,
   BookOpen,
-  Key
+  Key,
+  ShieldCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -35,11 +36,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { GuidanceCard } from "@/components/profile/GuidanceCard";
+import { CandidateProfileForm } from "@/components/auth/CandidateProfileForm";
+import { AdminProfileForm } from "@/components/auth/AdminProfileForm";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -57,6 +61,7 @@ const Profile = () => {
       const token = await firebaseUser.getIdToken();
       const profile = await apiService.getUser(token);
       setUser(profile);
+      setIsNewUser(false);
       setFormData({
         fullName: profile.fullName || "",
         phone: profile.phone || "",
@@ -67,8 +72,13 @@ const Profile = () => {
         specializations: Array.isArray(profile.specializations) ? profile.specializations.join(", ") : profile.specializations || "",
         email: profile.email || ""
       });
-    } catch (error) {
-      toast.error("Failed to load profile");
+    } catch (error: any) {
+      console.error(error);
+      if (error.status === 404 || error.message?.includes("User not found")) {
+        setIsNewUser(true);
+      } else {
+        toast.error("Failed to load profile");
+      }
     } finally {
       setLoading(false);
     }
@@ -110,8 +120,8 @@ const Profile = () => {
 
   const handlePasswordReset = async () => {
     try {
-      if (!user?.email) return;
-      await sendPasswordResetEmail(auth, user.email);
+      if (!auth.currentUser?.email) return;
+      await sendPasswordResetEmail(auth, auth.currentUser.email);
       toast.success("Password reset link sent to your email! 📩");
     } catch (error: any) {
       toast.error(error.message || "Failed to send reset link");
@@ -127,7 +137,38 @@ const Profile = () => {
     );
   }
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = auth.currentUser?.email?.endsWith("@jammuuniversity.ac.in");
+
+  if (isNewUser) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center px-4 py-24">
+        <CosmicBackground />
+        <Navbar />
+        <div className="w-full max-w-lg">
+          <GlassCard className="space-y-6">
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
+                <ShieldCheck className="w-3 h-3" /> Step 2: Complete Profile
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                Finalize Your Account
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Provide your details to gain access to {isAdmin ? "admin" : "candidate"} features
+              </p>
+            </div>
+
+            {isAdmin ? (
+              <AdminProfileForm onSuccess={() => navigate("/admin/dashboard")} />
+            ) : (
+              <CandidateProfileForm onSuccess={() => fetchProfile(auth.currentUser)} />
+            )}
+          </GlassCard>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="relative min-h-screen pt-24 pb-12 px-4">

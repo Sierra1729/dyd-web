@@ -16,7 +16,11 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-export const CandidateProfileForm = () => {
+interface CandidateProfileFormProps {
+  onSuccess?: () => void;
+}
+
+export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -55,9 +59,14 @@ export const CandidateProfileForm = () => {
 
       await apiService.saveUser(userData, token);
 
-      await signOut(auth);
       toast.success("Profile submitted! It is now under review. You will be notified once approved.");
-      navigate("/login");
+      
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        await signOut(auth);
+        navigate("/login");
+      }
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Failed to save profile");
@@ -65,6 +74,7 @@ export const CandidateProfileForm = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

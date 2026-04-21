@@ -55,26 +55,26 @@ const Login = () => {
       // ✅ Force-refresh token so backend sees emailVerified: true
       const token = await user.getIdToken(true);
 
-      // ✅ Check if user profile already exists in backend
-      let userData;
       try {
         userData = await apiService.getUser(token);
       } catch (err: any) {
         if (err.message === "User not found") {
-          // Profile not saved yet — could happen if they skipped VerifyEmail page
-          toast.error("Profile not found. Please complete verification.");
-          navigate("/verify-email");
+          // Profile not saved yet — direct to profile page to complete it
+          toast.info("Please complete your profile details.");
+          navigate("/profile");
           return;
         }
         throw err;
       }
 
-      // 🔐 Check Admin Approval Status (Step 4)
-      if (userData.isApproved === false) {
+
+      // 🔐 Check Approval Status (Only for Candidates)
+      if (userData.role === "candidate" && userData.isApproved === false) {
         await auth.signOut();
         toast.error("Your profile is not yet approved by admin. You will be notified once approved.");
         return;
       }
+
 
       toast.success("Login successful 🚀");
 

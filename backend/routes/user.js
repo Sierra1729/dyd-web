@@ -4,7 +4,12 @@ const router = express.Router();
 const { admin, db } = require("../config/firebase");
 const verifyToken = require("../middleware/auth");
 const verifyAdmin = require("../middleware/admin");
-const { sendApprovalEmail } = require("../config/mailer");
+const { 
+  sendApprovalEmail, 
+  sendRejectionEmail, 
+  sendAdminNewUserAuthNotification 
+} = require("../config/mailer");
+
 
 
 // ✅ SAVE USER — called AFTER email verification
@@ -75,6 +80,12 @@ router.post("/saveUser", verifyToken, async (req, res) => {
     await db.collection(collectionName).doc(req.user.uid).set(userData);
 
     console.log("✅ Successfully saved user:", req.user.uid);
+    
+    // 📧 Notify Admin (Async)
+    if (role === "candidate") {
+      sendAdminNewUserAuthNotification(userData).catch(err => console.error("❌ Notification error:", err));
+    }
+
 
     return res.json({
       success: true,
@@ -145,6 +156,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
     }
 
     const existing = doc.data();
+    const wasRejected = existing.status === "rejected";
 
     const updatedData = {
       fullName: fullName || existing.fullName,
@@ -158,7 +170,23 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       updatedAt: new Date().toISOString(),
     };
 
+    // 🔄 If user was rejected, reset to pending for re-approval
+    if (wasRejected) {
+      updatedData.status = "pending";
+      updatedData.isApproved = false;
+      updatedData.resubmittedAt = new Date().toISOString();
+      
+      // 📧 Notify Admin (Reuse notification logic)
+      sendAdminNewUserAuthNotification({ 
+        ...existing, 
+        ...updatedData, 
+        fullName: updatedData.fullName || existing.fullName,
+        email: existing.email 
+      }).catch(err => console.error("❌ Notification error:", err));
+    }
+
     await db.collection(collectionName).doc(uid).update(updatedData);
+
 
     return res.json({
       success: true,
@@ -281,10 +309,28 @@ router.patch("/candidate/:id/approve", verifyToken, verifyAdmin, async (req, res
 router.patch("/candidate/:id/reject", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    await db.collection("candidates").doc(id).update({
+    const { remarks } = req.body;
+    
+    const docRef = db.collection("candidates").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ message: "Candidate not found" });
+    }
+
+    const userData = doc.data();
+
+    await docRef.update({
       isApproved: false,
       status: "rejected",
+      rejectionRemarks: remarks || "",
+      rejectedAt: new Date().toISOString(),
     });
+
+    // 📧 Send Rejection Email (Async)
+    sendRejectionEmail(userData.email, userData.fullName, remarks)
+      .catch(err => console.error("❌ Rejection Email Error:", err));
+
 
     return res.json({ 
       success: true, 

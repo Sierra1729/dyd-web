@@ -35,6 +35,9 @@ const AdminUsers = () => {
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<UserData | null>(null);
+  const [rejectingUser, setRejectingUser] = useState<UserData | null>(null);
+  const [rejectionRemarks, setRejectionRemarks] = useState("");
+
 
   // Advanced Filters
   const [filterSemester, setFilterSemester] = useState<string>("all");
@@ -111,21 +114,29 @@ const AdminUsers = () => {
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = (user: UserData) => {
+    setRejectingUser(user);
+    setRejectionRemarks("");
+  };
+
+  const confirmReject = async () => {
+    if (!rejectingUser) return;
     try {
-      setIsProcessing(id);
+      setIsProcessing(rejectingUser.id);
       const user = auth.currentUser;
       if (!user) return;
       const token = await user.getIdToken();
-      await apiService.rejectCandidate(id, token);
-      toast.success("User rejected");
-      setUsers(users.map(u => u.id === id ? { ...u, isApproved: false, status: "rejected" } : u));
+      await apiService.rejectCandidate(rejectingUser.id, rejectionRemarks, token);
+      toast.success("User rejected and notified 📩");
+      setUsers(users.map(u => u.id === rejectingUser.id ? { ...u, isApproved: false, status: "rejected" } : u));
+      setRejectingUser(null);
     } catch (error) {
       toast.error("Failed to reject user");
     } finally {
       setIsProcessing(null);
     }
   };
+
 
   const filteredUsers = users.filter(u => {
     const matchesSearch =
@@ -318,7 +329,7 @@ const AdminUsers = () => {
                                 )}
                               </button>
                               <button
-                                onClick={() => handleReject(user.id)}
+                                onClick={() => handleReject(user)}
                                 disabled={isProcessing === user.id}
                                 className="p-2 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all disabled:opacity-50"
                                 title="Reject User"
@@ -329,6 +340,7 @@ const AdminUsers = () => {
                                   <XCircle className="w-4 h-4" />
                                 )}
                               </button>
+
                             </>
                           )}
                           <button
@@ -462,7 +474,72 @@ const AdminUsers = () => {
         )}
       </AnimatePresence>
 
+      {/* Rejection Modal */}
+      <AnimatePresence>
+        {rejectingUser && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md"
+            >
+              <GlassCard className="p-8 space-y-6 relative border-amber-500/20 shadow-2xl overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl -mr-12 -mt-12" />
+
+                <div className="flex flex-col items-center space-y-4 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                    <XCircle className="w-8 h-8 text-amber-500" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-foreground">Reject Profile</h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Please provide a reason for rejecting <span className="text-foreground font-semibold px-1 rounded bg-white/5">{rejectingUser.fullName}</span>. 
+                      This feedback will be emailed to them.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase text-left block">
+                    Remarks / Feedback
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="e.g. Please provide a clear profile photo or valid Roll Number."
+                    className="w-full bg-secondary/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none placeholder:text-muted-foreground/30"
+                    value={rejectionRemarks}
+                    onChange={(e) => setRejectionRemarks(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2 relative z-10">
+                  <button
+                    onClick={() => setRejectingUser(null)}
+                    className="flex-1 py-3 rounded-xl bg-secondary/50 text-foreground font-medium hover:bg-secondary transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmReject}
+                    disabled={isProcessing === rejectingUser.id}
+                    className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-medium shadow-lg shadow-amber-500/20 hover:bg-amber-500/90 transition-all flex items-center justify-center gap-2"
+                  >
+                    {isProcessing === rejectingUser.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Confirm Rejection"
+                    )}
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Delete Confirmation Modal */}
+
       <AnimatePresence>
         {deleteConfirm && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

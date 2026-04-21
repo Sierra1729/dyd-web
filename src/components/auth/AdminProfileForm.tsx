@@ -29,7 +29,11 @@ const departments = [
   { value: "Economics", label: "Economics" },
 ] as const;
 
-export const AdminProfileForm = () => {
+interface AdminProfileFormProps {
+  onSuccess?: () => void;
+}
+
+export const AdminProfileForm = ({ onSuccess }: AdminProfileFormProps) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -58,9 +62,14 @@ export const AdminProfileForm = () => {
 
       await apiService.saveUser(userData, token);
 
-      await signOut(auth);
       toast.success("Profile submitted! It is now under review. You will be notified once approved.");
-      navigate("/login");
+      
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        await signOut(auth);
+        navigate("/login");
+      }
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Failed to save profile");
@@ -68,6 +77,7 @@ export const AdminProfileForm = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
