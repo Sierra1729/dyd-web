@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,38 +6,50 @@
 
 @layer base {
   :root {
-    --background: 220 33% 98%;
-    --foreground: 224 71% 4%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 243 75% 59%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 220 20% 94%;
-    --secondary-foreground: 224 71% 4%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 220 20% 94%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 214 32% 91%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 243 75% 59%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
+
+    --deep-slate: 217 33% 17%;
+    --electric-blue: 211 92% 60%;
+    --ghost-white: 210 40% 98%;
+    --deep-indigo: 243 50% 21%;
+    --gold: 43 100% 50%;
+
+    --background: 210 40% 98%;
+    --foreground: 217 33% 17%;
+
+    --primary: 211 92% 60%;
+    --primary-foreground: 210 40% 98%;
 
     --glass: 0 0% 100%;
-    --glass-opacity: 0.6;
+    --glass-opacity: 0.7;
     --border-glow: 0 0% 100%;
 
     --sidebar-background: 0 0% 98%;
@@ -87,8 +99,13 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-ghost-white text-foreground font-inter antialiased;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-montserrat font-bold text-deep-slate;
+  }
+
 }
 
 @layer utilities {
@@ -107,18 +124,62 @@
   }
 
   .glass {
-    @apply backdrop-blur-xl bg-white/60 border border-white/40;
+    @apply backdrop-blur-md bg-white/70 border border-slate-200/50 shadow-sm;
   }
 
   .glass-strong {
-    @apply backdrop-blur-2xl bg-white/80 border border-white/50;
+    @apply backdrop-blur-lg bg-white/90 border border-slate-200 shadow-md;
   }
 
   .gradient-primary {
-    @apply bg-gradient-to-br from-indigo-500 to-blue-600;
+    @apply bg-gradient-to-br from-[#3B82F6] to-[#2563EB];
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[#1E293B] to-[#3B82F6] bg-clip-text text-transparent;
+  }
+
+  .bg-deep-slate {
+    background-color: hsl(var(--deep-slate));
+  }
+
+  .bg-electric-blue {
+    background-color: hsl(var(--electric-blue));
+  }
+
+  .bg-ghost-white {
+    background-color: hsl(var(--ghost-white));
+  }
+
+  .text-deep-slate {
+    color: hsl(var(--deep-slate));
+  }
+
+  .bg-deep-indigo {
+    background-color: hsl(var(--deep-indigo));
+  }
+
+  .text-deep-indigo {
+    color: hsl(var(--deep-indigo));
+  }
+
+  .gradient-indigo {
+    @apply bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900;
+  }
+
+  .gold-trim {
+    @apply border-l-4 border-l-[#FFD700] shadow-sm;
+  }
+
+  .bg-mesh {
+    background-color: #f8fafc;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(217, 91%, 60%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(243, 75%, 59%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(217, 91%, 60%, 0.05) 0px, transparent 50%);
+  }
+
+  .watermark {
+    @apply opacity-[0.03] grayscale pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-auto z-0;
   }
 }

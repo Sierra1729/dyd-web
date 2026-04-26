@@ -138,7 +138,6 @@ router.get("/getUser", verifyToken, async (req, res) => {
 router.put("/updateProfile", verifyToken, async (req, res) => {
   try {
     const uid = req.user.uid;
-    const {
       fullName,
       phone,
       dob,
@@ -147,6 +146,13 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       department,
       interests,
       specializations,
+      professionalSummary,
+      projects,
+      skills,
+      certifications,
+      semesters,
+      githubUrl,
+      linkedinUrl,
     } = req.body;
 
     let collectionName = "admins";
@@ -165,14 +171,24 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
     const wasRejected = existing.status === "rejected";
 
     const updatedData = {
-      fullName: fullName || existing.fullName,
-      phone: phone || existing.phone,
-      dob: dob || existing.dob,
-      fatherName: fatherName || existing.fatherName,
-      school: school || existing.school,
-      department: department || existing.department,
+      fullName: fullName !== undefined ? fullName : existing.fullName,
+      phone: phone !== undefined ? phone : existing.phone,
+      dob: dob !== undefined ? dob : existing.dob,
+      fatherName: fatherName !== undefined ? fatherName : existing.fatherName,
+      school: school !== undefined ? school : existing.school,
+      department: department !== undefined ? department : existing.department,
       interests: Array.isArray(interests) ? interests : (existing.interests || []),
       specializations: Array.isArray(specializations) ? specializations : (existing.specializations || []),
+      
+      // ✅ New Portfolio Fields (Explicit checks for precision)
+      professionalSummary: professionalSummary !== undefined ? professionalSummary : (existing.professionalSummary || ""),
+      projects: Array.isArray(projects) ? projects : (existing.projects || []),
+      skills: Array.isArray(skills) ? skills : (existing.skills || []),
+      certifications: Array.isArray(certifications) ? certifications : (existing.certifications || []),
+      semesters: Array.isArray(semesters) ? semesters : (existing.semesters || []),
+      githubUrl: githubUrl !== undefined ? githubUrl : (existing.githubUrl || ""),
+      linkedinUrl: linkedinUrl !== undefined ? linkedinUrl : (existing.linkedinUrl || ""),
+
       updatedAt: new Date().toISOString(),
     };
 

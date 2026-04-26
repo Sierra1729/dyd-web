@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Public Sans"', 'system-ui', 'sans-serif'],
+        inter: ['"Inter"', 'sans-serif'],
+        montserrat: ['"Montserrat"', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -60,6 +61,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        'deep-slate': "hsl(var(--deep-slate))",
+        'electric-blue': "hsl(var(--electric-blue))",
+        'ghost-white': "hsl(var(--ghost-white))",
       },
       borderRadius: {
         lg: "var(--radius)",
