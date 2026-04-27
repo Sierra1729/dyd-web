@@ -86,17 +86,36 @@ export const apiService = {
     }),
 
   // 🔐 Update OWN profile
-  updateProfile: (data: any, token: string) =>
-    request("/updateProfile", {
+  updateProfile: async (data: any, token: string) => {
+    return request("/updateProfile", {
       method: "PUT",
-      headers: {
+      headers: { 
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}` 
       },
       body: JSON.stringify(data),
-    }),
+    });
+  },
 
-  // 🔐 Approve candidate (admin)
+  uploadProfilePhoto: async (file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+    return request("/uploadProfilePhoto", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  },
+
+  uploadMarksheet: async (file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("marksheet", file);
+    return request("/uploadMarksheet", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  },
 
   // 🔐 Approve candidate (admin)
   approveCandidate: (id: string, token: string) =>

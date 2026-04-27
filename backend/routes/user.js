@@ -3,11 +3,12 @@ const router = express.Router();
 const User = require("../models/User");
 const verifyToken = require("../middleware/auth");
 const verifyAdmin = require("../middleware/admin");
-const { 
-  sendApprovalEmail, 
-  sendRejectionEmail, 
-  sendAdminNewUserAuthNotification 
+const {
+  sendApprovalEmail,
+  sendRejectionEmail,
+  sendAdminNewUserAuthNotification
 } = require("../config/mailer");
+const upload = require("../middleware/upload");
 
 // ✅ SAVE USER — called AFTER email verification
 router.post("/saveUser", verifyToken, async (req, res) => {
@@ -102,7 +103,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
     const updateData = { ...req.body };
     delete updateData.uid; // Security
     delete updateData.role; // Security
-    
+
     const existing = await User.findOne({ uid });
     if (!existing) {
       return res.status(404).json({ message: "User not found" });
@@ -113,7 +114,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       updateData.status = "pending";
       updateData.isApproved = false;
       updateData.resubmittedAt = new Date();
-      
+
       sendAdminNewUserAuthNotification({ ...existing.toObject(), ...updateData })
         .catch(err => console.error("❌ Notification error:", err));
     }
@@ -225,6 +226,45 @@ router.patch("/candidate/:id/reject", verifyToken, verifyAdmin, async (req, res)
   } catch (error) {
     console.error("❌ Rejection Error:", error);
     return res.status(500).json({ message: "Error rejecting candidate" });
+  }
+});
+
+// 🖼️ UPLOAD PROFILE PHOTO
+router.post("/uploadProfilePhoto", verifyToken, upload.single("photo"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const user = await User.findOneAndUpdate(
+      { uid: req.user.uid },
+      { $set: { photoURL: req.file.path } },
+      { new: true }
+    );
+
+    return res.json({
+      success: true,
+      url: req.file.path,
+      message: "Photo uploaded and profile updated"
+    });
+  } catch (error) {
+    console.error("❌ Photo Upload Error:", error);
+    return res.status(500).json({ message: "Error uploading photo" });
+  }
+});
+
+// 📄 UPLOAD MARKSHEET
+router.post("/uploadMarksheet", verifyToken, upload.single("marksheet"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    // We only return the URL; the frontend will save it into the specific semester CGPA block
+    return res.json({
+      success: true,
+      url: req.file.path,
+      message: "Marksheet uploaded successfully"
+    });
+  } catch (error) {
+    console.error("❌ Marksheet Upload Error:", error);
+    return res.status(500).json({ message: "Error uploading marksheet" });
   }
 });
 
