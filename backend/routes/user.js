@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
-const { admin, db } = require("../config/firebase");
+const User = require("../models/User");
 const verifyToken = require("../middleware/auth");
 const verifyAdmin = require("../middleware/admin");
 const { 
@@ -10,13 +9,9 @@ const {
   sendAdminNewUserAuthNotification 
 } = require("../config/mailer");
 
-
-
 // ✅ SAVE USER — called AFTER email verification
 router.post("/saveUser", verifyToken, async (req, res) => {
   try {
-    console.log("📥 Incoming data:", JSON.stringify(req.body, null, 2));
-
     if (!req.user.email_verified) {
       return res.status(403).json({
         success: false,
@@ -39,9 +34,6 @@ router.post("/saveUser", verifyToken, async (req, res) => {
       specializations,
     } = req.body;
 
-    // 🔍 Debug log to confirm fields received
-    console.log("🔍 Fields received:", { rollNo, semester, enrollmentYear, domain, dob });
-
     const isAdminEmail = req.user.email.endsWith("@jammuuniversity.ac.in");
     const role = isAdminEmail ? "admin" : "candidate";
 
@@ -49,186 +41,100 @@ router.post("/saveUser", verifyToken, async (req, res) => {
       uid: req.user.uid,
       email: req.user.email,
       role,
-
       fullName: fullName || "",
       fatherName: fatherName || "",
-      school: school || "",
-      dob: dob ? new Date(dob).toISOString() : "",
+      dob: dob ? new Date(dob) : null,
       phone: phone || "",
+      school: school || "",
       department: department || "",
-
-      // ✅ These fields MUST be saved
       rollNo: rollNo || "",
-      semester: semester !== undefined && semester !== null && semester !== "" ? Number(semester) : null,
-      enrollmentYear: enrollmentYear !== undefined && enrollmentYear !== null && enrollmentYear !== "" ? Number(enrollmentYear) : null,
+      semester: semester ? Number(semester) : 1,
+      enrollmentYear: enrollmentYear ? Number(enrollmentYear) : null,
       domain: domain || "",
-
       interests: Array.isArray(interests) ? interests : [],
       specializations: Array.isArray(specializations) ? specializations : [],
-
-      // ✅ Approval System Fields
-      isApproved: role === "admin" ? true : false,
       status: role === "admin" ? "approved" : "pending",
-      approvedAt: role === "admin" ? new Date().toISOString() : null,
-
-      createdAt: new Date().toISOString(),
+      isApproved: role === "admin",
+      approvedAt: role === "admin" ? new Date() : null,
     };
 
-    console.log("💾 Saving to Firestore:", JSON.stringify(userData, null, 2));
+    // Save to MongoDB
+    const newUser = await User.findOneAndUpdate(
+      { uid: req.user.uid },
+      userData,
+      { upsert: true, new: true }
+    );
 
-    const collectionName = role === "admin" ? "admins" : "candidates";
-    await db.collection(collectionName).doc(req.user.uid).set(userData);
-
-    console.log("✅ Successfully saved user:", req.user.uid);
-    
-    // 📧 Notify Admin (Async)
     if (role === "candidate") {
       sendAdminNewUserAuthNotification(userData).catch(err => console.error("❌ Notification error:", err));
     }
 
-
     return res.json({
       success: true,
-      message: `${role} registered successfully`,
-      data: userData,
+      message: `${role} registered successfully in MongoDB`,
+      data: newUser,
     });
 
   } catch (error) {
     console.error("❌ ERROR in saveUser:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Error saving user",
-      error: error.message,
-    });
+    return res.status(500).json({ success: false, message: "Error saving user to MongoDB", error: error.message });
   }
 });
-
 
 // ✅ GET USER — fetch profile after login
 router.get("/getUser", verifyToken, async (req, res) => {
   try {
-    const uid = req.user.uid;
-
-    let doc = await db.collection("admins").doc(uid).get();
-
-    if (!doc.exists) {
-      doc = await db.collection("candidates").doc(uid).get();
+    const user = await User.findOne({ uid: req.user.uid });
+    if (!user) {
+      return res.status(404).json({ message: "User not found in MongoDB" });
     }
-
-    // ⚡️ FALLBACK: Check legacy 'users' collection (for older approved accounts)
-    if (!doc.exists) {
-      doc = await db.collection("users").doc(uid).get();
-    }
-
-    if (!doc.exists) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-
-    return res.json(doc.data());
-
+    return res.json(user);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error fetching user" });
+    return res.status(500).json({ message: "Error fetching user from MongoDB" });
   }
 });
 
-
-// 🔄 UPDATE PROFILE — allows user to update their own profile
+// 🔄 UPDATE PROFILE
 router.put("/updateProfile", verifyToken, async (req, res) => {
   try {
     const uid = req.user.uid;
-    const {
-      fullName,
-      phone,
-      dob,
-      fatherName,
-      school,
-      department,
-      interests,
-      specializations,
-      professionalSummary,
-      projects,
-      skills,
-      certifications,
-      semesters,
-      githubUrl,
-      linkedinUrl,
-    } = req.body;
-
-    let collectionName = "admins";
-    let doc = await db.collection("admins").doc(uid).get();
-
-    if (!doc.exists) {
-      collectionName = "candidates";
-      doc = await db.collection("candidates").doc(uid).get();
-    }
-
-    if (!doc.exists) {
+    const updateData = { ...req.body };
+    delete updateData.uid; // Security
+    delete updateData.role; // Security
+    
+    const existing = await User.findOne({ uid });
+    if (!existing) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const existing = doc.data();
     const wasRejected = existing.status === "rejected";
-
-    const updatedData = {
-      fullName: fullName !== undefined ? fullName : existing.fullName,
-      phone: phone !== undefined ? phone : existing.phone,
-      dob: dob !== undefined ? dob : existing.dob,
-      fatherName: fatherName !== undefined ? fatherName : existing.fatherName,
-      school: school !== undefined ? school : existing.school,
-      department: department !== undefined ? department : existing.department,
-      interests: Array.isArray(interests) ? interests : (existing.interests || []),
-      specializations: Array.isArray(specializations) ? specializations : (existing.specializations || []),
-      
-      // ✅ New Portfolio Fields (Explicit checks for precision)
-      professionalSummary: professionalSummary !== undefined ? professionalSummary : (existing.professionalSummary || ""),
-      projects: Array.isArray(projects) ? projects : (existing.projects || []),
-      skills: Array.isArray(skills) ? skills : (existing.skills || []),
-      certifications: Array.isArray(certifications) ? certifications : (existing.certifications || []),
-      semesters: Array.isArray(semesters) ? semesters : (existing.semesters || []),
-      githubUrl: githubUrl !== undefined ? githubUrl : (existing.githubUrl || ""),
-      linkedinUrl: linkedinUrl !== undefined ? linkedinUrl : (existing.linkedinUrl || ""),
-
-      updatedAt: new Date().toISOString(),
-    };
-
-    // 🔄 If user was rejected, reset to pending for re-approval
     if (wasRejected) {
-      updatedData.status = "pending";
-      updatedData.isApproved = false;
-      updatedData.resubmittedAt = new Date().toISOString();
+      updateData.status = "pending";
+      updateData.isApproved = false;
+      updateData.resubmittedAt = new Date();
       
-      // 📧 Notify Admin (Reuse notification logic)
-      sendAdminNewUserAuthNotification({ 
-        ...existing, 
-        ...updatedData, 
-        fullName: updatedData.fullName || existing.fullName,
-        email: existing.email 
-      }).catch(err => console.error("❌ Notification error:", err));
+      sendAdminNewUserAuthNotification({ ...existing.toObject(), ...updateData })
+        .catch(err => console.error("❌ Notification error:", err));
     }
 
-    await db.collection(collectionName).doc(uid).update(updatedData);
+    const updatedUser = await User.findOneAndUpdate(
+      { uid },
+      { $set: updateData },
+      { new: true }
+    );
 
-
-    return res.json({
-      success: true,
-      message: "Profile updated successfully",
-      data: updatedData,
-    });
-
+    return res.json({ success: true, message: "Profile updated in MongoDB", data: updatedUser });
   } catch (error) {
     console.error("❌ Profile Update Error:", error);
-    return res.status(500).json({ message: "Error updating profile" });
+    return res.status(500).json({ message: "Error updating MongoDB profile" });
   }
 });
-
 
 // 🔐 ADMIN ONLY — get all candidates
 router.get("/allCandidates", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const snapshot = await db.collection("candidates").get();
-    const users = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const users = await User.find({ role: "candidate" });
     return res.json(users);
   } catch (error) {
     console.error(error);
@@ -236,134 +142,90 @@ router.get("/allCandidates", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-
 // 🔐 ADMIN ONLY — delete candidate
 router.delete("/candidate/:id", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
-    await db.collection("candidates").doc(id).delete();
-    return res.json({ message: "Candidate deleted successfully" });
+    await User.findByIdAndDelete(req.params.id);
+    return res.json({ message: "Candidate deleted from MongoDB" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error deleting candidate" });
   }
 });
 
-
 // 🔐 ADMIN ONLY — update candidate
 router.put("/candidate/:id", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
-    await db.collection("candidates").doc(id).update(req.body);
-    return res.json({ message: "Candidate updated successfully" });
+    await User.findByIdAndUpdate(req.params.id, req.body);
+    return res.json({ message: "Candidate updated in MongoDB" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error updating candidate" });
   }
 });
 
-
 // 🔐 ADMIN ONLY — analytics
 router.get("/analytics", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const snapshot = await db.collection("candidates").get();
-    const totalCandidates = snapshot.size;
+    const totalCandidates = await User.countDocuments({ role: "candidate" });
+    const candidates = await User.find({ role: "candidate" });
 
     let schoolCount = {};
     let departmentCount = {};
     let interestCount = {};
     let specializationCount = {};
 
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.school) schoolCount[data.school] = (schoolCount[data.school] || 0) + 1;
-      if (data.department) departmentCount[data.department] = (departmentCount[data.department] || 0) + 1;
-      if (Array.isArray(data.interests)) {
-        data.interests.forEach(i => { interestCount[i] = (interestCount[i] || 0) + 1; });
-      }
-      if (Array.isArray(data.specializations)) {
-        data.specializations.forEach(s => { specializationCount[s] = (specializationCount[s] || 0) + 1; });
-      }
+    candidates.forEach((user) => {
+      if (user.school) schoolCount[user.school] = (schoolCount[user.school] || 0) + 1;
+      if (user.department) departmentCount[user.department] = (departmentCount[user.department] || 0) + 1;
+      if (user.interests) user.interests.forEach(i => interestCount[i] = (interestCount[i] || 0) + 1);
+      if (user.specializations) user.specializations.forEach(s => specializationCount[s] = (specializationCount[s] || 0) + 1);
     });
 
     return res.json({ totalCandidates, schoolCount, departmentCount, interestCount, specializationCount });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error fetching analytics" });
+    return res.status(500).json({ message: "Error generating MongoDB analytics" });
   }
 });
-
 
 // 🔐 ADMIN ONLY — APPROVE CANDIDATE
 router.patch("/candidate/:id/approve", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
-    const docRef = db.collection("candidates").doc(id);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return res.status(404).json({ message: "Candidate not found" });
-    }
-
-    const userData = doc.data();
-
-    await docRef.update({
+    const user = await User.findByIdAndUpdate(req.params.id, {
       isApproved: true,
       status: "approved",
-      approvedAt: new Date().toISOString(),
-    });
+      approvedAt: new Date()
+    }, { new: true });
 
-    // 📧 Send Notification Email
-    console.log(`🚀 Sending approval email to: ${userData.email}`);
-    await sendApprovalEmail(userData.email, userData.fullName);
+    if (!user) return res.status(404).json({ message: "Candidate not found" });
 
-    return res.json({ 
-      success: true, 
-      message: "Candidate approved successfully and email sent" 
-    });
+    await sendApprovalEmail(user.email, user.fullName);
+    return res.json({ success: true, message: "Approved in MongoDB" });
   } catch (error) {
     console.error("❌ Approval Error:", error);
     return res.status(500).json({ message: "Error approving candidate" });
   }
 });
 
-
 // 🔐 ADMIN ONLY — REJECT CANDIDATE
 router.patch("/candidate/:id/reject", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
-    const { remarks } = req.body;
-    
-    const docRef = db.collection("candidates").doc(id);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return res.status(404).json({ message: "Candidate not found" });
-    }
-
-    const userData = doc.data();
-
-    await docRef.update({
+    const user = await User.findByIdAndUpdate(req.params.id, {
       isApproved: false,
       status: "rejected",
-      rejectionRemarks: remarks || "",
-      rejectedAt: new Date().toISOString(),
-    });
+      rejectionRemarks: req.body.remarks || "",
+      rejectedAt: new Date()
+    }, { new: true });
 
-    // 📧 Send Rejection Email (Async)
-    sendRejectionEmail(userData.email, userData.fullName, remarks)
-      .catch(err => console.error("❌ Rejection Email Error:", err));
+    if (!user) return res.status(404).json({ message: "Candidate not found" });
 
-
-    return res.json({ 
-      success: true, 
-      message: "Candidate rejected successfully" 
-    });
+    sendRejectionEmail(user.email, user.fullName, req.body.remarks).catch(e => console.error(e));
+    return res.json({ success: true, message: "Rejected in MongoDB" });
   } catch (error) {
     console.error("❌ Rejection Error:", error);
     return res.status(500).json({ message: "Error rejecting candidate" });
   }
 });
-
 
 module.exports = router;
