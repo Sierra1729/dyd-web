@@ -97,10 +97,11 @@ const Profile = () => {
 
   const fetchProfile = async (firebaseUser: any) => {
     try {
+      setLoading(true);
       const token = await firebaseUser.getIdToken();
       const profile = await apiService.getUser(token);
-      setUser(profile);
       
+      setUser(profile);
       setFormData(prev => ({
         ...prev,
         fullName: profile.fullName || "",
@@ -120,6 +121,11 @@ const Profile = () => {
         semesters: Array.isArray(profile.semesters) ? profile.semesters : prev.semesters,
       }));
     } catch (error: any) {
+      // 🌈 GRACEFUL HANDLING: If user is new, just let them fill the form
+      if (error.message && error.message.includes("User not found")) {
+        console.log("New user detected - showing empty profile form");
+        return; 
+      }
       console.error("Fetch Error:", error);
       setErrorState(error.message || "Failed to load profile");
       toast.error(error.message || "Failed to load profile");
