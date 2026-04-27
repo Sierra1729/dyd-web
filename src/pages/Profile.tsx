@@ -32,7 +32,6 @@ import {
   ExternalLink,
   GraduationCap,
   Clock,
-  AlertCircle
   AlertCircle,
   Camera
 } from "lucide-react";
