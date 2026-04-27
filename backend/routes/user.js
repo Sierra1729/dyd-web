@@ -138,6 +138,7 @@ router.get("/getUser", verifyToken, async (req, res) => {
 router.put("/updateProfile", verifyToken, async (req, res) => {
   try {
     const uid = req.user.uid;
+    const {
       fullName,
       phone,
       dob,
