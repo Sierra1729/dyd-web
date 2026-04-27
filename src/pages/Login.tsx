@@ -60,9 +60,9 @@ const Login = () => {
         userData = await apiService.getUser(token);
 
       } catch (err: any) {
-        if (err.message === "User not found") {
-          // Profile not saved yet — direct to profile page to complete it
-          toast.info("Please complete your profile details.");
+        // 🔄 FLEXIBLE CHECK: If user is in Firebase but not in MongoDB, send to Profile
+        if (err.message && err.message.includes("User not found")) {
+          toast.info("Welcome! Please complete your profile details to get started.");
           navigate("/profile");
           return;
         }
