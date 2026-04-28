@@ -132,4 +132,17 @@ export const apiService = {
       body: formData,
     });
   },
+
+  // 🔐 Upload Profile Photo
+  uploadProfilePhoto: (file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+    return request("/upload/profile-photo", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
 };

@@ -13,8 +13,8 @@ const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// 📁 Cloudinary Storage Setup
-const storage = new CloudinaryStorage({
+// 📁 Cloudinary Storage Setup for Marksheets
+const marksheetStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
     const isPDF = file.mimetype === "application/pdf";
@@ -26,12 +26,23 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+// 📁 Cloudinary Storage Setup for Profile Photos
+const avatarStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "avatars",
+    resource_type: "image",
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+  },
+});
+
+const uploadMarksheet = multer({ storage: marksheetStorage });
+const uploadAvatar = multer({ storage: avatarStorage });
 
 
 
 // ✅ UPLOAD MARKSHEET
-router.post("/upload/marksheet", verifyToken, upload.single("marksheet"), async (req, res) => {
+router.post("/upload/marksheet", verifyToken, uploadMarksheet.single("marksheet"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
@@ -141,6 +152,24 @@ router.post("/saveUser", verifyToken, async (req, res) => {
 });
 
 
+// 🔐 Upload Profile Photo
+router.post("/upload/profile-photo", verifyToken, uploadAvatar.single("photo"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No photo uploaded" });
+    }
+
+    res.json({
+      success: true,
+      url: req.file.path,
+      public_id: req.file.filename
+    });
+  } catch (error) {
+    console.error("❌ Photo upload error:", error);
+    res.status(500).json({ message: "Upload failed", error: error.message });
+  }
+});
+
 // ✅ GET USER — fetch profile after login
 router.get("/getUser", verifyToken, async (req, res) => {
   try {
@@ -190,6 +219,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       certifications,
       semesters,
       semester,
+      photoURL,
       githubUrl,
       linkedinUrl,
     } = req.body;
@@ -229,6 +259,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       certifications: Array.isArray(certifications) ? certifications : (existing.certifications || []),
       semesters: Array.isArray(semesters) ? semesters : (existing.semesters || []),
       semester: semester !== undefined ? Number(semester) : existing.semester,
+      photoURL: photoURL !== undefined ? photoURL : existing.photoURL,
       githubUrl: githubUrl !== undefined ? githubUrl : (existing.githubUrl || ""),
       linkedinUrl: linkedinUrl !== undefined ? linkedinUrl : (existing.linkedinUrl || ""),
 

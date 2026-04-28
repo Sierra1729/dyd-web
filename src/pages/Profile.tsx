@@ -55,6 +55,7 @@ const Profile = () => {
     professionalSummary: "",
     githubUrl: "",
     linkedinUrl: "",
+    photoURL: "",
     interests: "",
     skills: [] as string[],
     projects: [] as any[],
@@ -107,6 +108,7 @@ const Profile = () => {
         professionalSummary: profile.professionalSummary || "",
         githubUrl: profile.githubUrl || "",
         linkedinUrl: profile.linkedinUrl || "",
+        photoURL: profile.photoURL || "",
         interests: Array.isArray(profile.interests) ? profile.interests.join(", ") : profile.interests || "",
         skills: Array.isArray(profile.skills) ? profile.skills : [],
         projects: Array.isArray(profile.projects) ? profile.projects : [],
@@ -151,6 +153,27 @@ const Profile = () => {
   };
 
   // Semester Handler
+  const handlePhotoUpload = async (file: File) => {
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) return;
+      const token = await firebaseUser.getIdToken();
+      
+      const toastId = toast.loading("Updating profile photo...");
+      const response = await apiService.uploadProfilePhoto(file, token);
+      
+      updateField("photoURL", response.url);
+      
+      // Also update the local state for the section
+      await apiService.updateProfile({ ...formData, photoURL: response.url }, token);
+      
+      toast.success("Profile photo updated", { id: toastId });
+      await fetchProfile(firebaseUser); // Refresh all data
+    } catch (error: any) {
+      toast.error(error.message || "Photo upload failed");
+    }
+  };
+
   const addSemester = () => {
     const nextId = formData.semesters.length > 0 
       ? Math.max(...formData.semesters.map(s => s.id)) + 1 
@@ -372,10 +395,19 @@ const Profile = () => {
                   </div>
 
                   <div className="grid md:grid-cols-12 gap-8">
-                    <div className="md:col-span-4 flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-100 rounded-3xl group hover:border-electric-blue transition-all cursor-pointer">
-                        <div className="w-32 h-32 rounded-full bg-slate-50 flex items-center justify-center mb-4 overflow-hidden relative">
-                          {user?.photoURL ? (
-                            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                    <label className="md:col-span-4 flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-100 rounded-3xl group hover:border-electric-blue transition-all cursor-pointer relative overflow-hidden">
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePhotoUpload(file);
+                          }}
+                        />
+                        <div className="w-32 h-32 rounded-full bg-slate-50 flex items-center justify-center mb-4 overflow-hidden relative border-2 border-slate-100 group-hover:border-electric-blue/30 transition-all">
+                          {formData.photoURL ? (
+                            <img src={formData.photoURL} alt="Profile" className="w-full h-full object-cover" />
                           ) : (
                             <Upload className="w-8 h-8 text-slate-300 group-hover:text-electric-blue transition-colors" />
                           )}
@@ -383,8 +415,8 @@ const Profile = () => {
                             <Plus className="text-white w-8 h-8" />
                           </div>
                         </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Upload Photo</span>
-                    </div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update Photo</span>
+                    </label>
 
                     <div className="md:col-span-8 space-y-6">
                       <div className="space-y-1.5">
