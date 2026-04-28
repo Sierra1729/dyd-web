@@ -198,41 +198,6 @@ router.post("/saveUser", verifyToken, async (req, res) => {
 });
 
 
-// 🔐 Upload Profile Photo
-router.post("/upload/profile-photo", verifyToken, uploadAvatar.single("photo"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No photo uploaded" });
-    }
-
-    res.json({
-      success: true,
-      url: req.file.path,
-      public_id: req.file.filename
-    });
-  } catch (error) {
-    console.error("❌ Photo upload error:", error);
-    res.status(500).json({ message: "Upload failed", error: error.message });
-  }
-});
-
-// 🔐 Upload Resume
-router.post("/upload/resume", verifyToken, uploadResume.single("resume"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No resume uploaded" });
-    }
-
-    res.json({
-      success: true,
-      url: req.file.path,
-      public_id: req.file.filename
-    });
-  } catch (error) {
-    console.error("❌ Resume upload error:", error);
-    res.status(500).json({ message: "Upload failed", error: error.message });
-  }
-});
 
 // ✅ GET USER — fetch profile after login
 router.get("/getUser", verifyToken, async (req, res) => {
