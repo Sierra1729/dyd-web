@@ -18,7 +18,7 @@ const marksheetStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "marksheets",
-    resource_type: "auto",
+    resource_type: "image", // PDFs work perfectly as 'image' in Cloudinary
   },
 });
 
@@ -27,7 +27,7 @@ const avatarStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "avatars",
-    resource_type: "auto",
+    resource_type: "image",
   },
 });
 
@@ -36,7 +36,7 @@ const resumeStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "resumes",
-    resource_type: "auto",
+    resource_type: "image", // Forcing image type to ensure public access and viewing
   },
 });
 
