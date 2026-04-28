@@ -16,13 +16,9 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 // 📁 Cloudinary Storage Setup for Marksheets
 const marksheetStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req, file) => {
-    const isPDF = file.mimetype === "application/pdf";
-    return {
-      folder: "marksheets",
-      resource_type: isPDF ? "raw" : "image",
-      format: isPDF ? "pdf" : undefined,
-    };
+  params: {
+    folder: "marksheets",
+    resource_type: "auto",
   },
 });
 
@@ -31,8 +27,7 @@ const avatarStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "avatars",
-    resource_type: "image",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    resource_type: "auto",
   },
 });
 
@@ -41,8 +36,7 @@ const resumeStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "resumes",
-    resource_type: "raw",
-    format: "pdf",
+    resource_type: "auto",
   },
 });
 
