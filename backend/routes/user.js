@@ -16,10 +16,13 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 // 📁 Cloudinary Storage Setup
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: "marksheets",
-    allowed_formats: ["jpg", "jpeg", "png", "pdf"],
-    resource_type: "auto", // Crucial for PDF support
+  params: async (req, file) => {
+    const isPDF = file.mimetype === "application/pdf";
+    return {
+      folder: "marksheets",
+      resource_type: isPDF ? "raw" : "image",
+      format: isPDF ? "pdf" : undefined,
+    };
   },
 });
 
