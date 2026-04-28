@@ -320,8 +320,21 @@ const Dashboard = () => {
                       )}
                     </div>
                     <div>
-                      <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1 italic">Tier Assessment</h4>
-                      <p className="text-xl font-black text-deep-slate mb-4">Semester 0{item.id}</p>
+                      <div className="flex items-center justify-between mb-1 italic">
+                        <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest">Tier Assessment</h4>
+                        {item.marksheetUrl && (
+                          <a 
+                            href={item.marksheetUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 hover:text-emerald-600 transition-colors uppercase tracking-widest"
+                          >
+                            <FileText className="w-3 h-3" />
+                            Marksheet
+                          </a>
+                        )}
+                      </div>
+                      <p className="text-xl font-black text-deep-slate mb-4">Semester {item.id < 10 ? `0${item.id}` : item.id}</p>
                       
                       <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
                         <span className="text-4xl font-black text-electric-blue tracking-tighter">{item.cgpa}</span>
