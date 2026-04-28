@@ -32,17 +32,13 @@ import {
   ExternalLink,
   GraduationCap,
   Clock,
-  AlertCircle,
-  Camera
+  AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const marksheetInputRef = useRef<HTMLInputElement>(null);
-  const [activeMarksheetId, setActiveMarksheetId] = useState<number | null>(null);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [errorState, setErrorState] = useState<string | null>(null);
@@ -63,12 +59,11 @@ const Profile = () => {
     skills: [] as string[],
     projects: [] as any[],
     certifications: [] as any[],
-    photoURL: "",
     semesters: [
-      { id: 1, cgpa: "", marksheetUrl: null },
-      { id: 2, cgpa: "", marksheetUrl: null },
-      { id: 3, cgpa: "", marksheetUrl: null },
-      { id: 4, cgpa: "", marksheetUrl: null },
+      { id: 1, cgpa: "", marksheet: null },
+      { id: 2, cgpa: "", marksheet: null },
+      { id: 3, cgpa: "", marksheet: null },
+      { id: 4, cgpa: "", marksheet: null },
     ]
   });
 
@@ -97,11 +92,10 @@ const Profile = () => {
 
   const fetchProfile = async (firebaseUser: any) => {
     try {
-      setLoading(true);
       const token = await firebaseUser.getIdToken();
       const profile = await apiService.getUser(token);
-      
       setUser(profile);
+      
       setFormData(prev => ({
         ...prev,
         fullName: profile.fullName || "",
@@ -117,15 +111,9 @@ const Profile = () => {
         skills: Array.isArray(profile.skills) ? profile.skills : [],
         projects: Array.isArray(profile.projects) ? profile.projects : [],
         certifications: Array.isArray(profile.certifications) ? profile.certifications : [],
-        photoURL: profile.photoURL || "",
         semesters: Array.isArray(profile.semesters) ? profile.semesters : prev.semesters,
       }));
     } catch (error: any) {
-      // 🌈 GRACEFUL HANDLING: If user is new, just let them fill the form
-      if (error.message && error.message.includes("User not found")) {
-        console.log("New user detected - showing empty profile form");
-        return; 
-      }
       console.error("Fetch Error:", error);
       setErrorState(error.message || "Failed to load profile");
       toast.error(error.message || "Failed to load profile");
@@ -134,6 +122,7 @@ const Profile = () => {
     }
   };
 
+  // HOOKS MUST BE BEFORE EARLY RETURNS
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
@@ -156,10 +145,12 @@ const Profile = () => {
     }
   }, [loading, errorState]);
 
+  // Generic Field Update
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Semester Handler
   const updateSemester = (id: number, cgpa: string) => {
     setFormData(prev => ({
       ...prev,
@@ -167,6 +158,7 @@ const Profile = () => {
     }));
   };
 
+  // Projects CRUD
   const addProject = () => {
     const newProject = { title: "New Project", description: "", stack: [], link: "" };
     setFormData(prev => ({ ...prev, projects: [...prev.projects, newProject] }));
@@ -184,6 +176,7 @@ const Profile = () => {
     setFormData(prev => ({ ...prev, projects: prev.projects.filter((_, i) => i !== index) }));
   };
 
+  // Certifications CRUD
   const addCertification = () => {
     const newCert = { name: "", issuer: "", year: new Date().getFullYear().toString() };
     setFormData(prev => ({ ...prev, certifications: [...prev.certifications, newCert] }));
@@ -214,52 +207,6 @@ const Profile = () => {
 
   const removeSkill = (skill: string) => {
     setFormData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }));
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setSaving('photo');
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) return;
-      
-      const response = await apiService.uploadProfilePhoto(file, token);
-      setFormData(prev => ({ ...prev, photoURL: response.url }));
-      toast.success("Photo uploaded successfully");
-    } catch (error: any) {
-      toast.error("Failed to upload photo");
-    } finally {
-      setSaving(null);
-    }
-  };
-
-  const handleMarksheetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || activeMarksheetId === null) return;
-
-    try {
-      setSaving(`marksheet-${activeMarksheetId}`);
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) return;
-
-      const response = await apiService.uploadMarksheet(file, token);
-      
-      setFormData(prev => ({
-        ...prev,
-        semesters: prev.semesters.map(s => 
-          s.id === activeMarksheetId ? { ...s, marksheetUrl: response.url } : s
-        )
-      }));
-      
-      toast.success(`Semester ${activeMarksheetId} marksheet updated`);
-    } catch (error: any) {
-      toast.error("Failed to upload marksheet");
-    } finally {
-      setSaving(null);
-      setActiveMarksheetId(null);
-    }
   };
 
   const handleSaveSection = async (sectionName: string) => {
@@ -343,6 +290,7 @@ const Profile = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
+          {/* NAVIGATION SIDEBAR */}
           <nav className="lg:col-span-3 space-y-2 sticky top-32">
             {[
               { id: "Profile & Bio", icon: User },
@@ -369,8 +317,10 @@ const Profile = () => {
             ))}
           </nav>
 
+          {/* MAIN EDITOR AREA */}
           <main className="lg:col-span-9 space-y-12 scroll-mt-32 max-h-[calc(100vh-200px)] overflow-y-auto pr-4 custom-scrollbar pb-24">
             
+            {/* Profile & Bio Section */}
             <section ref={sectionRefs["Profile & Bio"]} className="space-y-6">
               <div className="glass rounded-[2rem] border border-slate-200 p-8 shadow-sm space-y-8">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-6">
@@ -388,27 +338,18 @@ const Profile = () => {
                   </div>
 
                   <div className="grid md:grid-cols-12 gap-8">
-                    <div 
-                      className="group relative w-32 h-32 md:w-36 md:h-36 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex items-center justify-center cursor-pointer hover:border-electric-blue hover:bg-blue-50/30 transition-all duration-300 overflow-hidden"
-                      onClick={() => photoInputRef.current?.click()}
-                    >
-                      {formData.photoURL ? (
-                        <img src={formData.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="text-center space-y-1">
-                          <Upload className="w-6 h-6 text-slate-400 mx-auto" />
+                    <div className="md:col-span-4 flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-100 rounded-3xl group hover:border-electric-blue transition-all cursor-pointer">
+                        <div className="w-32 h-32 rounded-full bg-slate-50 flex items-center justify-center mb-4 overflow-hidden relative">
+                          {user?.photoURL ? (
+                            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                          ) : (
+                            <Upload className="w-8 h-8 text-slate-300 group-hover:text-electric-blue transition-colors" />
+                          )}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <Plus className="text-white w-8 h-8" />
+                          </div>
                         </div>
-                      )}
-                      <input 
-                        type="file" 
-                        ref={photoInputRef} 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                      />
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Camera className="w-6 h-6 text-white" />
-                      </div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Upload Photo</span>
                     </div>
 
                     <div className="md:col-span-8 space-y-6">
@@ -427,6 +368,7 @@ const Profile = () => {
               </div>
             </section>
 
+            {/* Academic records */}
             <section ref={sectionRefs["Academic Records"]} className="space-y-6">
               <div className="glass rounded-[2rem] border border-slate-200 p-8 shadow-sm space-y-8">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-6">
@@ -444,7 +386,7 @@ const Profile = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-separate border-spacing-y-3">
+                  <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-slate-50">
                         <th className="py-4 text-[10px] font-black text-slate-400 uppercase">Semester</th>
@@ -453,13 +395,6 @@ const Profile = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      <input 
-                        type="file" 
-                        ref={marksheetInputRef} 
-                        className="hidden" 
-                        accept=".pdf,image/*"
-                        onChange={handleMarksheetUpload}
-                      />
                       {formData.semesters.map((sem) => (
                         <tr key={sem.id}>
                           <td className="py-6 font-bold text-deep-slate">Semester 0{sem.id}</td>
@@ -473,20 +408,9 @@ const Profile = () => {
                             />
                           </td>
                           <td className="py-6 text-right">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveMarksheetId(sem.id);
-                                marksheetInputRef.current?.click();
-                              }}
-                              className={`inline-flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-electric-blue transition-colors ${saving === `marksheet-${sem.id}` ? "opacity-50 pointer-events-none" : ""}`}
-                            >
-                              {saving === `marksheet-${sem.id}` ? (
-                                 <div className="w-4 h-4 border-2 border-electric-blue border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <FileText className="w-4 h-4" />
-                              )}
-                              {sem.marksheetUrl ? "REPLACE MARKSHEET (PDF)" : "UPLOAD MARKSHEET (PDF)"}
+                            <button className="inline-flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-electric-blue transition-colors">
+                              <FileText className="w-4 h-4" />
+                              REPLACE MARKSHEET (PDF)
                             </button>
                           </td>
                         </tr>
