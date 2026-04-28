@@ -9,7 +9,41 @@ const {
   sendRejectionEmail, 
   sendAdminNewUserAuthNotification 
 } = require("../config/mailer");
+const cloudinary = require("../config/cloudinary");
+const multer = require("multer");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
+// 📁 Cloudinary Storage Setup
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "marksheets",
+    allowed_formats: ["jpg", "jpeg", "png", "pdf"],
+    resource_type: "auto", // Crucial for PDF support
+  },
+});
+
+const upload = multer({ storage: storage });
+
+
+
+// ✅ UPLOAD MARKSHEET
+router.post("/upload/marksheet", verifyToken, upload.single("marksheet"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    return res.json({
+      success: true,
+      message: "Marksheet uploaded successfully",
+      url: req.file.path, // Cloudinary URL
+    });
+  } catch (error) {
+    console.error("❌ Upload Error:", error);
+    return res.status(500).json({ success: false, message: "Error uploading marksheet" });
+  }
+});
 
 
 // ✅ SAVE USER — called AFTER email verification
@@ -152,9 +186,13 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       skills,
       certifications,
       semesters,
+      semester,
       githubUrl,
       linkedinUrl,
     } = req.body;
+    
+    console.log("📥 updateProfile incoming semester:", semester);
+    console.log("📥 updateProfile full body:", JSON.stringify(req.body, null, 2));
 
     let collectionName = "admins";
     let doc = await db.collection("admins").doc(uid).get();
@@ -187,6 +225,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       skills: Array.isArray(skills) ? skills : (existing.skills || []),
       certifications: Array.isArray(certifications) ? certifications : (existing.certifications || []),
       semesters: Array.isArray(semesters) ? semesters : (existing.semesters || []),
+      semester: semester !== undefined ? Number(semester) : existing.semester,
       githubUrl: githubUrl !== undefined ? githubUrl : (existing.githubUrl || ""),
       linkedinUrl: linkedinUrl !== undefined ? linkedinUrl : (existing.linkedinUrl || ""),
 

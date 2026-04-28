@@ -71,7 +71,13 @@ const Dashboard = () => {
   const projects = Array.isArray(userData?.projects) ? userData.projects : [];
   const skills = Array.isArray(userData?.skills) ? userData.skills : [];
   const certifications = Array.isArray(userData?.certifications) ? userData.certifications : [];
-  const semesters = Array.isArray(userData?.semesters) ? userData.semesters : [];
+  const semesters = Array.isArray(userData?.semesters) 
+    ? [...userData.semesters].sort((a, b) => {
+        if (a.id === Number(userData.semester)) return -1;
+        if (b.id === Number(userData.semester)) return 1;
+        return a.id - b.id;
+      }) 
+    : [];
 
   return (
     <div className="relative min-h-screen bg-ghost-white pt-24 pb-12 font-inter">

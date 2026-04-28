@@ -60,10 +60,10 @@ const Profile = () => {
     projects: [] as any[],
     certifications: [] as any[],
     semesters: [
-      { id: 1, cgpa: "", marksheet: null },
-      { id: 2, cgpa: "", marksheet: null },
-      { id: 3, cgpa: "", marksheet: null },
-      { id: 4, cgpa: "", marksheet: null },
+      { id: 1, cgpa: "", marksheetUrl: null },
+      { id: 2, cgpa: "", marksheetUrl: null },
+      { id: 3, cgpa: "", marksheetUrl: null },
+      { id: 4, cgpa: "", marksheetUrl: null },
     ]
   });
 
@@ -151,11 +151,42 @@ const Profile = () => {
   };
 
   // Semester Handler
-  const updateSemester = (id: number, cgpa: string) => {
+  const addSemester = () => {
+    const nextId = formData.semesters.length > 0 
+      ? Math.max(...formData.semesters.map(s => s.id)) + 1 
+      : 1;
+    const newSem = { id: nextId, cgpa: "", marksheetUrl: null };
+    setFormData(prev => ({ ...prev, semesters: [...prev.semesters, newSem] }));
+  };
+
+  const removeSemester = (id: number) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      semesters: prev.semesters.filter(s => s.id !== id) 
+    }));
+  };
+
+  const updateSemester = (id: number, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
-      semesters: prev.semesters.map(s => s.id === id ? { ...s, cgpa } : s)
+      semesters: prev.semesters.map(s => s.id === id ? { ...s, [field]: value } : s)
     }));
+  };
+
+  const handleMarksheetUpload = async (id: number, file: File) => {
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) return;
+      const token = await firebaseUser.getIdToken();
+      
+      const toastId = toast.loading(`Uploading marksheet for Semester ${id}...`);
+      const response = await apiService.uploadMarksheet(file, token);
+      
+      updateSemester(id, "marksheetUrl", response.url);
+      toast.success("Marksheet uploaded", { id: toastId });
+    } catch (error: any) {
+      toast.error(error.message || "Upload failed");
+    }
   };
 
   // Projects CRUD
@@ -210,15 +241,18 @@ const Profile = () => {
   };
 
   const handleSaveSection = async (sectionName: string) => {
+    const toastId = toast.loading(`Saving ${sectionName}...`);
     setSaving(sectionName);
     try {
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) return;
       const token = await firebaseUser.getIdToken();
       await apiService.updateProfile(formData, token);
-      toast.success(`${sectionName} updated successfully`);
+      toast.success(`${sectionName} updated successfully`, { id: toastId });
+      // Re-fetch to confirm persistence
+      await fetchProfile(firebaseUser);
     } catch (error: any) {
-      toast.error(error.message || "Failed to save changes");
+      toast.error(error.message || "Failed to save changes", { id: toastId });
     } finally {
       setSaving(null);
     }
@@ -376,27 +410,47 @@ const Profile = () => {
                       <GraduationCap className="w-6 h-6 text-electric-blue" />
                       ACADEMIC MANAGER
                     </h2>
-                    <button 
-                      onClick={() => handleSaveSection("Academic Records")}
-                      className="px-6 py-2.5 rounded-xl bg-electric-blue text-white text-xs font-black shadow-lg hover:bg-blue-600 transition-all flex items-center gap-2"
-                    >
-                      {saving === "Academic Records" ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-                      SYNC GRADES
-                    </button>
+                    <div className="flex items-center gap-4">
+                      <button 
+                        onClick={addSemester}
+                        className="flex items-center gap-2 text-[10px] font-black text-electric-blue hover:translate-x-1 transition-all uppercase tracking-widest border border-electric-blue/20 px-4 py-2 rounded-xl hover:bg-electric-blue/5"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        ADD SEMESTER
+                      </button>
+                      <button 
+                        onClick={() => handleSaveSection("Academic Records")}
+                        className="px-6 py-2.5 rounded-xl bg-electric-blue text-white text-xs font-black shadow-lg hover:bg-blue-600 transition-all flex items-center gap-2"
+                      >
+                        {saving === "Academic Records" ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                        SYNC GRADES
+                      </button>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-slate-50">
+                        <th className="py-4 text-[10px] font-black text-slate-400 uppercase">Current</th>
                         <th className="py-4 text-[10px] font-black text-slate-400 uppercase">Semester</th>
                         <th className="py-4 text-[10px] font-black text-slate-400 uppercase text-center">CGPA</th>
                         <th className="py-4 text-[10px] font-black text-slate-400 uppercase text-right">Marksheet Artifact</th>
+                        <th className="py-4 text-[10px] font-black text-slate-400 uppercase text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                       {formData.semesters.map((sem) => (
-                        <tr key={sem.id}>
+                        <tr key={sem.id} className="group">
+                          <td className="py-6">
+                            <input 
+                              type="radio"
+                              name="currentSemester"
+                              checked={Number(formData.semester) === sem.id}
+                              onChange={() => updateField("semester", sem.id)}
+                              className="w-5 h-5 accent-electric-blue cursor-pointer"
+                            />
+                          </td>
                           <td className="py-6 font-bold text-deep-slate">Semester 0{sem.id}</td>
                           <td className="py-6">
                             <input 
@@ -404,13 +458,38 @@ const Profile = () => {
                               step="0.01"
                               className="w-20 mx-auto block px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-center font-black text-electric-blue"
                               value={sem.cgpa}
-                              onChange={(e) => updateSemester(sem.id, e.target.value)}
+                              onChange={(e) => updateSemester(sem.id, "cgpa", e.target.value)}
                             />
                           </td>
                           <td className="py-6 text-right">
-                            <button className="inline-flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-electric-blue transition-colors">
-                              <FileText className="w-4 h-4" />
-                              REPLACE MARKSHEET (PDF)
+                             <div className="flex flex-col items-end gap-1">
+                                {sem.marksheetUrl ? (
+                                  <a href={sem.marksheetUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black text-emerald-500 hover:underline">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    VIEW MARKSHEET
+                                  </a>
+                                ) : null}
+                                <label className="inline-flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-electric-blue transition-colors cursor-pointer">
+                                  <FileUp className="w-4 h-4" />
+                                  {sem.marksheetUrl ? "REPLACE MARKSHEET" : "UPLOAD PDF"}
+                                  <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    accept="application/pdf,image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleMarksheetUpload(sem.id, file);
+                                    }}
+                                  />
+                                </label>
+                             </div>
+                          </td>
+                          <td className="py-6 text-right">
+                            <button 
+                              onClick={() => removeSemester(sem.id)}
+                              className="p-2.5 rounded-xl hover:bg-red-50 text-slate-300 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </td>
                         </tr>

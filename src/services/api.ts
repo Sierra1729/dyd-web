@@ -118,4 +118,16 @@ export const apiService = {
       body: JSON.stringify({ remarks }),
     }),
 
+  // 🔐 Upload Marksheet
+  uploadMarksheet: (file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("marksheet", file);
+    return request("/upload/marksheet", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
 };
