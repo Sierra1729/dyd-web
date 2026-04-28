@@ -511,7 +511,20 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="flex gap-3">
-                  <button className="flex-1 flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-electric-blue hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-electric-blue/40 border border-white/10">
+                  <button 
+                    onClick={() => {
+                      if (userData?.resumeURL) {
+                        window.open(userData.resumeURL, "_blank");
+                      } else {
+                        toast.error("No resume found in vault");
+                      }
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-2 p-3.5 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-xl border border-white/10 ${
+                      userData?.resumeURL 
+                      ? 'bg-electric-blue hover:bg-blue-600 shadow-electric-blue/40' 
+                      : 'bg-slate-700/50 cursor-not-allowed opacity-50'
+                    }`}
+                  >
                     <Download className="w-4 h-4" />
                     PULL
                   </button>
