@@ -11,56 +11,97 @@ const {
 } = require("../config/mailer");
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// 📁 Cloudinary Storage Setup for Marksheets
-const marksheetStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "marksheets",
-    resource_type: "image", // PDFs work perfectly as 'image' in Cloudinary
-  },
-});
+// 📁 Simple Memory Storage for uploads (we'll stream to Cloudinary)
+const memoryStorage = multer.memoryStorage();
+const upload = multer({ storage: memoryStorage });
 
-// 📁 Cloudinary Storage Setup for Profile Photos
-const avatarStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "avatars",
-    resource_type: "image",
-  },
-});
-
-// 📁 Cloudinary Storage Setup for Resumes
-const resumeStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "resumes",
-    resource_type: "image", // Forcing image type to ensure public access and viewing
-  },
-});
-
-const uploadMarksheet = multer({ storage: marksheetStorage });
-const uploadAvatar = multer({ storage: avatarStorage });
-const uploadResume = multer({ storage: resumeStorage });
-
-
-
-// ✅ UPLOAD MARKSHEET
-router.post("/upload/marksheet", verifyToken, uploadMarksheet.single("marksheet"), async (req, res) => {
+// 🔐 Upload Marksheet
+router.post("/upload/marksheet", verifyToken, upload.single("marksheet"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: "No file uploaded" });
+      return res.status(400).json({ message: "No file uploaded" });
     }
 
-    return res.json({
-      success: true,
-      message: "Marksheet uploaded successfully",
-      url: req.file.path, // Cloudinary URL
-    });
+    // Stream upload to Cloudinary
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "marksheets",
+        resource_type: "auto", // Let Cloudinary decide, but handle manually if needed
+        flags: "attachment", // Optional: allows direct download
+      },
+      (error, result) => {
+        if (error) return res.status(500).json({ message: "Cloudinary upload failed", error });
+        res.json({
+          success: true,
+          url: result.secure_url,
+          public_id: result.public_id
+        });
+      }
+    );
+
+    uploadStream.end(req.file.buffer);
   } catch (error) {
-    console.error("❌ Upload Error:", error);
-    return res.status(500).json({ success: false, message: "Error uploading marksheet" });
+    console.error("❌ Upload error:", error);
+    res.status(500).json({ message: "Upload failed", error: error.message });
+  }
+});
+
+// 🔐 Upload Profile Photo
+router.post("/upload/profile-photo", verifyToken, upload.single("photo"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No photo uploaded" });
+    }
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "avatars",
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) return res.status(500).json({ message: "Cloudinary upload failed", error });
+        res.json({
+          success: true,
+          url: result.secure_url,
+          public_id: result.public_id
+        });
+      }
+    );
+
+    uploadStream.end(req.file.buffer);
+  } catch (error) {
+    console.error("❌ Photo upload error:", error);
+    res.status(500).json({ message: "Upload failed", error: error.message });
+  }
+});
+
+// 🔐 Upload Resume
+router.post("/upload/resume", verifyToken, upload.single("resume"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No resume uploaded" });
+    }
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "resumes",
+        resource_type: "auto",
+      },
+      (error, result) => {
+        if (error) return res.status(500).json({ message: "Cloudinary upload failed", error });
+        res.json({
+          success: true,
+          url: result.secure_url,
+          public_id: result.public_id
+        });
+      }
+    );
+
+    uploadStream.end(req.file.buffer);
+  } catch (error) {
+    console.error("❌ Resume upload error:", error);
+    res.status(500).json({ message: "Upload failed", error: error.message });
   }
 });
 
