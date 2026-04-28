@@ -4,10 +4,10 @@ const router = express.Router();
 const { admin, db } = require("../config/firebase");
 const verifyToken = require("../middleware/auth");
 const verifyAdmin = require("../middleware/admin");
-const { 
-  sendApprovalEmail, 
-  sendRejectionEmail, 
-  sendAdminNewUserAuthNotification 
+const {
+  sendApprovalEmail,
+  sendRejectionEmail,
+  sendAdminNewUserAuthNotification
 } = require("../config/mailer");
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
@@ -27,7 +27,7 @@ router.post("/upload/marksheet", verifyToken, upload.single("marksheet"), async 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: "marksheets",
-        resource_type: "auto", // Let Cloudinary decide, but handle manually if needed
+        resource_type: "raw", // Let Cloudinary decide, but handle manually if needed
         flags: "attachment", // Optional: allows direct download
       },
       (error, result) => {
@@ -86,7 +86,7 @@ router.post("/upload/resume", verifyToken, upload.single("resume"), async (req, 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: "resumes",
-        resource_type: "auto",
+        resource_type: "raw", // ✅ Changed from "auto" to "raw"
       },
       (error, result) => {
         if (error) return res.status(500).json({ message: "Cloudinary upload failed", error });
@@ -174,7 +174,7 @@ router.post("/saveUser", verifyToken, async (req, res) => {
     await db.collection(collectionName).doc(req.user.uid).set(userData);
 
     console.log("✅ Successfully saved user:", req.user.uid);
-    
+
     // 📧 Notify Admin (Async)
     if (role === "candidate") {
       sendAdminNewUserAuthNotification(userData).catch(err => console.error("❌ Notification error:", err));
@@ -256,7 +256,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       enrollmentYear,
       domain,
     } = req.body;
-    
+
     console.log("📥 updateProfile incoming semester:", semester);
     console.log("📥 updateProfile full body:", JSON.stringify(req.body, null, 2));
 
@@ -284,7 +284,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       department: department !== undefined ? department : existing.department,
       interests: Array.isArray(interests) ? interests : (existing.interests || []),
       specializations: Array.isArray(specializations) ? specializations : (existing.specializations || []),
-      
+
       // ✅ New Portfolio Fields (Explicit checks for precision)
       professionalSummary: professionalSummary !== undefined ? professionalSummary : (existing.professionalSummary || ""),
       projects: Array.isArray(projects) ? projects : (existing.projects || []),
@@ -308,13 +308,13 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       updatedData.status = "pending";
       updatedData.isApproved = false;
       updatedData.resubmittedAt = new Date().toISOString();
-      
+
       // 📧 Notify Admin (Reuse notification logic)
-      sendAdminNewUserAuthNotification({ 
-        ...existing, 
-        ...updatedData, 
+      sendAdminNewUserAuthNotification({
+        ...existing,
+        ...updatedData,
         fullName: updatedData.fullName || existing.fullName,
-        email: existing.email 
+        email: existing.email
       }).catch(err => console.error("❌ Notification error:", err));
     }
 
@@ -427,9 +427,9 @@ router.patch("/candidate/:id/approve", verifyToken, verifyAdmin, async (req, res
     console.log(`🚀 Sending approval email to: ${userData.email}`);
     await sendApprovalEmail(userData.email, userData.fullName);
 
-    return res.json({ 
-      success: true, 
-      message: "Candidate approved successfully and email sent" 
+    return res.json({
+      success: true,
+      message: "Candidate approved successfully and email sent"
     });
   } catch (error) {
     console.error("❌ Approval Error:", error);
@@ -443,7 +443,7 @@ router.patch("/candidate/:id/reject", verifyToken, verifyAdmin, async (req, res)
   try {
     const { id } = req.params;
     const { remarks } = req.body;
-    
+
     const docRef = db.collection("candidates").doc(id);
     const doc = await docRef.get();
 
@@ -465,9 +465,9 @@ router.patch("/candidate/:id/reject", verifyToken, verifyAdmin, async (req, res)
       .catch(err => console.error("❌ Rejection Email Error:", err));
 
 
-    return res.json({ 
-      success: true, 
-      message: "Candidate rejected successfully" 
+    return res.json({
+      success: true,
+      message: "Candidate rejected successfully"
     });
   } catch (error) {
     console.error("❌ Rejection Error:", error);
