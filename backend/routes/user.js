@@ -252,6 +252,9 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       resumeURL,
       githubUrl,
       linkedinUrl,
+      rollNo,
+      enrollmentYear,
+      domain,
     } = req.body;
     
     console.log("📥 updateProfile incoming semester:", semester);
@@ -293,6 +296,9 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       resumeURL: resumeURL !== undefined ? resumeURL : existing.resumeURL,
       githubUrl: githubUrl !== undefined ? githubUrl : (existing.githubUrl || ""),
       linkedinUrl: linkedinUrl !== undefined ? linkedinUrl : (existing.linkedinUrl || ""),
+      rollNo: rollNo !== undefined ? rollNo : (existing.rollNo || ""),
+      enrollmentYear: enrollmentYear !== undefined ? enrollmentYear : (existing.enrollmentYear || ""),
+      domain: domain !== undefined ? domain : (existing.domain || ""),
 
       updatedAt: new Date().toISOString(),
     };

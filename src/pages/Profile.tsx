@@ -58,6 +58,9 @@ const Profile = () => {
     linkedinUrl: "",
     photoURL: "",
     resumeURL: "",
+    rollNo: "",
+    enrollmentYear: "",
+    domain: "",
     interests: "",
     skills: [] as string[],
     projects: [] as any[],
@@ -113,6 +116,9 @@ const Profile = () => {
         linkedinUrl: profile.linkedinUrl || "",
         photoURL: profile.photoURL || "",
         resumeURL: profile.resumeURL || "",
+        rollNo: profile.rollNo || "",
+        enrollmentYear: profile.enrollmentYear || "",
+        domain: profile.domain || "",
         interests: Array.isArray(profile.interests) ? profile.interests.join(", ") : profile.interests || "",
         skills: Array.isArray(profile.skills) ? profile.skills : [],
         projects: Array.isArray(profile.projects) ? profile.projects : [],
@@ -484,6 +490,42 @@ const Profile = () => {
                         SYNC GRADES
                       </button>
                     </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">University Roll Number</label>
+                    <input 
+                      type="text"
+                      value={formData.rollNo}
+                      onChange={(e) => updateField("rollNo", e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-100 text-deep-slate font-bold text-sm focus:border-electric-blue outline-none transition-all"
+                      placeholder="e.g. DYD-24-001"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Enrollment Year</label>
+                    <select 
+                      value={formData.enrollmentYear}
+                      onChange={(e) => updateField("enrollmentYear", e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-100 text-deep-slate font-bold text-sm focus:border-electric-blue outline-none transition-all"
+                    >
+                      <option value="">Select Year</option>
+                      {[2023, 2024, 2025, 2026].map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Specialization / Domain</label>
+                    <input 
+                      type="text"
+                      value={formData.domain}
+                      onChange={(e) => updateField("domain", e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-100 text-deep-slate font-bold text-sm focus:border-electric-blue outline-none transition-all"
+                      placeholder="e.g. Computer Science"
+                    />
+                  </div>
                 </div>
 
                 <div className="overflow-x-auto">
