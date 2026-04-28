@@ -32,7 +32,8 @@ import {
   ExternalLink,
   GraduationCap,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
@@ -56,6 +57,7 @@ const Profile = () => {
     githubUrl: "",
     linkedinUrl: "",
     photoURL: "",
+    resumeURL: "",
     interests: "",
     skills: [] as string[],
     projects: [] as any[],
@@ -109,6 +111,7 @@ const Profile = () => {
         githubUrl: profile.githubUrl || "",
         linkedinUrl: profile.linkedinUrl || "",
         photoURL: profile.photoURL || "",
+        resumeURL: profile.resumeURL || "",
         interests: Array.isArray(profile.interests) ? profile.interests.join(", ") : profile.interests || "",
         skills: Array.isArray(profile.skills) ? profile.skills : [],
         projects: Array.isArray(profile.projects) ? profile.projects : [],
@@ -153,6 +156,27 @@ const Profile = () => {
   };
 
   // Semester Handler
+  const handleResumeUpload = async (file: File) => {
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) return;
+      const token = await firebaseUser.getIdToken();
+      
+      const toastId = toast.loading("Uploading resume...");
+      const response = await apiService.uploadResume(file, token);
+      
+      updateField("resumeURL", response.url);
+      
+      // Also update the local state for the section
+      await apiService.updateProfile({ ...formData, resumeURL: response.url }, token);
+      
+      toast.success("Resume uploaded", { id: toastId });
+      await fetchProfile(firebaseUser); // Refresh all data
+    } catch (error: any) {
+      toast.error(error.message || "Resume upload failed");
+    }
+  };
+
   const handlePhotoUpload = async (file: File) => {
     try {
       const firebaseUser = auth.currentUser;
@@ -419,6 +443,44 @@ const Profile = () => {
                     </label>
 
                     <div className="md:col-span-8 space-y-6">
+                      <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-electric-blue/10 flex items-center justify-center text-electric-blue">
+                             <FileText className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-deep-slate uppercase tracking-tight">Professional Resume</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PDF format recommended</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {formData.resumeURL && (
+                            <a 
+                              href={formData.resumeURL} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 rounded-xl bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              View
+                            </a>
+                          )}
+                          <label className="px-4 py-2 rounded-xl bg-electric-blue text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-2 cursor-pointer">
+                            <Upload className="w-3.5 h-3.5" />
+                            {formData.resumeURL ? "Replace" : "Upload"}
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              accept=".pdf,.doc,.docx"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleResumeUpload(file);
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Professional Summary (500 Chars)</label>
                         <textarea 

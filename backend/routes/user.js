@@ -36,8 +36,19 @@ const avatarStorage = new CloudinaryStorage({
   },
 });
 
+// 📁 Cloudinary Storage Setup for Resumes
+const resumeStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "resumes",
+    resource_type: "raw",
+    format: "pdf",
+  },
+});
+
 const uploadMarksheet = multer({ storage: marksheetStorage });
 const uploadAvatar = multer({ storage: avatarStorage });
+const uploadResume = multer({ storage: resumeStorage });
 
 
 
@@ -170,6 +181,24 @@ router.post("/upload/profile-photo", verifyToken, uploadAvatar.single("photo"), 
   }
 });
 
+// 🔐 Upload Resume
+router.post("/upload/resume", verifyToken, uploadResume.single("resume"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No resume uploaded" });
+    }
+
+    res.json({
+      success: true,
+      url: req.file.path,
+      public_id: req.file.filename
+    });
+  } catch (error) {
+    console.error("❌ Resume upload error:", error);
+    res.status(500).json({ message: "Upload failed", error: error.message });
+  }
+});
+
 // ✅ GET USER — fetch profile after login
 router.get("/getUser", verifyToken, async (req, res) => {
   try {
@@ -220,6 +249,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       semesters,
       semester,
       photoURL,
+      resumeURL,
       githubUrl,
       linkedinUrl,
     } = req.body;
@@ -260,6 +290,7 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
       semesters: Array.isArray(semesters) ? semesters : (existing.semesters || []),
       semester: semester !== undefined ? Number(semester) : existing.semester,
       photoURL: photoURL !== undefined ? photoURL : existing.photoURL,
+      resumeURL: resumeURL !== undefined ? resumeURL : existing.resumeURL,
       githubUrl: githubUrl !== undefined ? githubUrl : (existing.githubUrl || ""),
       linkedinUrl: linkedinUrl !== undefined ? linkedinUrl : (existing.linkedinUrl || ""),
 

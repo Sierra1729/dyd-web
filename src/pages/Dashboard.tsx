@@ -155,6 +155,20 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
+
+                {userData?.resumeURL && (
+                  <div className="pt-4">
+                    <a 
+                      href={userData.resumeURL} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl bg-electric-blue text-white shadow-lg shadow-electric-blue/20 hover:shadow-electric-blue/40 hover:-translate-y-1 transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Download Resume</span>
+                    </a>
+                  </div>
+                )}
               </div>
             </motion.div>
 

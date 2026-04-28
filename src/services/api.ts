@@ -145,4 +145,17 @@ export const apiService = {
       body: formData,
     });
   },
+
+  // 🔐 Upload Resume
+  uploadResume: (file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("resume", file);
+    return request("/upload/resume", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
 };
