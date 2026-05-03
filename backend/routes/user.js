@@ -423,9 +423,9 @@ router.patch("/candidate/:id/approve", verifyToken, verifyAdmin, async (req, res
       approvedAt: new Date().toISOString(),
     });
 
-    // 📧 Send Notification Email
+    // 📧 Send Notification Email (Async)
     console.log(`🚀 Sending approval email to: ${userData.email}`);
-    await sendApprovalEmail(userData.email, userData.fullName);
+    sendApprovalEmail(userData.email, userData.fullName).catch(err => console.error("❌ Email Error:", err));
 
     return res.json({
       success: true,
