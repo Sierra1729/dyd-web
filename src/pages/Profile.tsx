@@ -85,6 +85,7 @@ const Profile = () => {
     "Academic Records": academicRecordsRef,
     "Projects & Research": projectsResearchRef,
     "Skills & Socials": skillsSocialsRef,
+    "Certificates": useRef<HTMLDivElement>(null),
     "Account Security": accountSecurityRef,
     "Resume Vault": useRef<HTMLDivElement>(null),
   };
@@ -149,7 +150,7 @@ const Profile = () => {
   useEffect(() => {
     if (!loading && !errorState) {
       const sectionFromHash = window.location.hash.replace("#", "").replace(/-/g, " ");
-      const validSections = ["Profile & Bio", "Academic Records", "Projects & Research", "Skills & Socials", "Account Security"];
+      const validSections = ["Profile & Bio", "Academic Records", "Projects & Research", "Skills & Socials", "Certificates", "Account Security"];
       
       if (sectionFromHash && validSections.includes(sectionFromHash)) {
         setTimeout(() => scrollToSection(sectionFromHash), 500);
@@ -399,6 +400,7 @@ const Profile = () => {
               { id: "Academic Records", icon: GraduationCap },
               { id: "Projects & Research", icon: Briefcase },
               { id: "Skills & Socials", icon: Award },
+              { id: "Certificates", icon: ShieldCheck },
               { id: "Account Security", icon: Lock },
               { id: "Resume Vault", icon: FileUp },
             ].map((section) => (
@@ -765,40 +767,59 @@ const Profile = () => {
                         </div>
                       </div>
                     </div>
+                  </div>
+               </div>
+            </section>
 
-                    <div className="space-y-4 pt-4">
-                       <div className="flex items-center justify-between">
-                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Certifications</label>
-                         <button onClick={addCertification} className="text-[10px] font-black text-electric-blue uppercase">Add Cert</button>
-                       </div>
-                       <div className="grid gap-3">
-                         {formData.certifications.map((cert, idx) => (
-                           <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-white border border-slate-100 items-start">
-                             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <input 
-                                  className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
-                                  placeholder="Certification Name"
-                                  value={cert.name}
-                                  onChange={(e) => updateCertification(idx, "name", e.target.value)}
-                                />
-                                <input 
-                                  className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
-                                  placeholder="Issuer"
-                                  value={cert.issuer}
-                                  onChange={(e) => updateCertification(idx, "issuer", e.target.value)}
-                                />
-                                <input 
-                                  className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
-                                  placeholder="Year"
-                                  value={cert.year}
-                                  onChange={(e) => updateCertification(idx, "year", e.target.value)}
-                                />
-                             </div>
-                             <button onClick={() => removeCertification(idx)} className="p-2 text-slate-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+            {/* Certificates */}
+            <section ref={sectionRefs["Certificates"]} className="space-y-6">
+               <div className="glass rounded-[2rem] border border-slate-200 p-8 shadow-sm space-y-8">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+                    <h2 className="text-xl font-black text-deep-slate flex items-center gap-3">
+                      <ShieldCheck className="w-6 h-6 text-electric-blue" />
+                      CERTIFICATES
+                    </h2>
+                    <button 
+                      onClick={() => handleSaveSection("Certificates")}
+                      className="px-6 py-2.5 rounded-xl bg-electric-blue text-white text-xs font-black shadow-lg hover:bg-blue-600 transition-all flex items-center gap-2"
+                    >
+                      {saving === "Certificates" ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                      SAVE ASSETS
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Certifications</label>
+                       <button onClick={addCertification} className="text-[10px] font-black text-electric-blue uppercase">Add Cert</button>
+                     </div>
+                     <div className="grid gap-3">
+                       {formData.certifications.map((cert, idx) => (
+                         <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-white border border-slate-100 items-start">
+                           <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <input 
+                                className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
+                                placeholder="Certification Name"
+                                value={cert.name}
+                                onChange={(e) => updateCertification(idx, "name", e.target.value)}
+                              />
+                              <input 
+                                className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
+                                placeholder="Issuer"
+                                value={cert.issuer}
+                                onChange={(e) => updateCertification(idx, "issuer", e.target.value)}
+                              />
+                              <input 
+                                className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
+                                placeholder="Year"
+                                value={cert.year}
+                                onChange={(e) => updateCertification(idx, "year", e.target.value)}
+                              />
                            </div>
-                         ))}
-                       </div>
-                    </div>
+                           <button onClick={() => removeCertification(idx)} className="p-2 text-slate-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                         </div>
+                       ))}
+                     </div>
                   </div>
                </div>
             </section>

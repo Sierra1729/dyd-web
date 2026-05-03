@@ -482,8 +482,8 @@ const Dashboard = () => {
               className="glass p-8 rounded-[2.5rem] border border-slate-200/50 shadow-lg"
             >
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest italic">Credentials</h3>
-                <button onClick={() => navigate("/profile#Skills-&-Socials")} className="text-[10px] font-black text-electric-blue uppercase tracking-widest hover:underline">Revise</button>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest italic">Certificates</h3>
+                <button onClick={() => navigate("/profile#Certificates")} className="text-[10px] font-black text-electric-blue uppercase tracking-widest hover:underline">Revise</button>
               </div>
               <div className="space-y-6">
                 {certifications.map((cert, idx) => (
