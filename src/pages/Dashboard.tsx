@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAllSkills, setShowAllSkills] = useState(false);
   const navigate = useNavigate();
 
   const fetchProfile = async (user: any, quiet = false) => {
@@ -132,6 +133,41 @@ const Dashboard = () => {
                       <MapPin className="w-3 h-3" /> Jammu, India
                     </p>
                   </div>
+                </div>
+
+                <div className="pt-4 text-left px-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Top Skills</h4>
+                    <button 
+                      onClick={() => navigate("/profile#Skills-&-Socials")}
+                      className="text-[10px] font-black text-slate-400 hover:text-electric-blue uppercase transition-colors"
+                    >
+                      {skills.length > 0 ? "Update" : "Add"}
+                    </button>
+                  </div>
+                  {skills.length > 0 ? (
+                    <>
+                      <ul className="space-y-2">
+                        {(showAllSkills ? skills : skills.slice(0, 5)).map((skill: string, idx: number) => (
+                          <li key={idx} className="flex items-center gap-2.5 text-sm text-slate-600 font-bold">
+                            <div className="w-1.5 h-1.5 rounded-full bg-electric-blue shrink-0" />
+                            <span className="truncate">{skill}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {skills.length > 5 && (
+                        <button 
+                          onClick={() => setShowAllSkills(!showAllSkills)}
+                          className="mt-4 text-[10px] font-black text-electric-blue hover:text-blue-600 uppercase tracking-widest w-full text-center flex items-center justify-center gap-1 transition-colors"
+                        >
+                          {showAllSkills ? "Show Less" : `View All (${skills.length})`}
+                          <ChevronRight className={`w-3 h-3 transition-transform ${showAllSkills ? "-rotate-90" : "rotate-90"}`} />
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic text-center py-2">No skills added yet.</p>
+                  )}
                 </div>
 
                 <div className="pt-6 border-t border-slate-100 flex flex-col gap-4 text-left">
