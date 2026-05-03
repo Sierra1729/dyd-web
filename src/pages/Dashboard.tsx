@@ -472,32 +472,7 @@ const Dashboard = () => {
 
           {/* RIGHT SIDEBAR (25%) */}
           <aside className="lg:col-span-1 space-y-8">
-            {/* Skills & Expertise */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="glass p-8 rounded-[2.5rem] border border-slate-200/50 shadow-lg relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 w-24 h-24 bg-electric-blue/5 blur-2xl -ml-8 -mt-8" />
-              <div className="flex items-center justify-between mb-8 relative z-10">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest italic">Core Meta Skills</h3>
-                <button onClick={() => navigate("/profile#Skills-&-Socials")}><Layout className="w-4 h-4 text-slate-200 hover:text-electric-blue transition-colors" /></button>
-              </div>
-              
-              <div className="space-y-6 relative z-10">
-                 <div className="flex flex-wrap gap-3">
-                  {skills.length > 0 ? skills.map(skill => (
-                    <span key={skill} className="px-4 py-2 rounded-2xl bg-white border border-slate-100 text-deep-slate text-xs font-black hover:border-electric-blue hover:text-electric-blue hover:scale-105 hover:-rotate-1 transition-all shadow-sm cursor-default">
-                      {skill}
-                    </span>
-                  )) : (
-                    <div className="w-full text-center py-6">
-                       <p className="text-[10px] text-slate-300 italic font-medium">Identity skillset currently undefined</p>
-                    </div>
-                  )}
-                 </div>
-              </div>
-            </motion.div>
+
 
             {/* Certifications */}
             <motion.div

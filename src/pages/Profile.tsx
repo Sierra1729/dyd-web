@@ -301,7 +301,21 @@ const Profile = () => {
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) return;
       const token = await firebaseUser.getIdToken();
-      await apiService.updateProfile(formData, token);
+      
+      let dataToSave = { ...formData };
+      if (sectionName === "Skills & Socials") {
+        const input = document.getElementById('skillInput') as HTMLInputElement;
+        if (input && input.value.trim()) {
+          const val = input.value.trim();
+          if (!dataToSave.skills.includes(val)) {
+             dataToSave.skills = [...dataToSave.skills, val];
+             setFormData(prev => ({ ...prev, skills: dataToSave.skills }));
+          }
+          input.value = '';
+        }
+      }
+      
+      await apiService.updateProfile(dataToSave, token);
       toast.success(`${sectionName} updated successfully`, { id: toastId });
       // Re-fetch to confirm persistence
       await fetchProfile(firebaseUser);
@@ -685,18 +699,41 @@ const Profile = () => {
 
                   <div className="space-y-8">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Professional Skillset Tags</label>
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-wrap gap-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Skills</label>
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-wrap gap-2 items-center">
                         {formData.skills.map(s => (
                           <span key={s} className="px-3 py-1.5 rounded-xl bg-electric-blue text-white text-[10px] font-black flex items-center gap-2">
                             {s} <X className="w-3 h-3 cursor-pointer hover:bg-white/20 rounded-full" onClick={() => removeSkill(s)} />
                           </span>
                         ))}
-                        <input 
-                          onKeyDown={addSkill}
-                          className="bg-transparent text-sm font-bold outline-none flex-1 min-w-[150px] px-2"
-                          placeholder="Type and press Enter..."
-                        />
+                        <div className="flex gap-2 flex-1 min-w-[200px]">
+                          <input 
+                            id="skillInput"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && e.currentTarget.value) {
+                                e.preventDefault();
+                                document.getElementById('addSkillBtn')?.click();
+                              }
+                            }}
+                            className="bg-transparent text-sm font-bold outline-none w-full px-2"
+                            placeholder="Type a skill..."
+                          />
+                          <button 
+                            id="addSkillBtn"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const input = document.getElementById('skillInput') as HTMLInputElement;
+                              const val = input?.value.trim();
+                              if (val && !formData.skills.includes(val)) {
+                                setFormData(prev => ({ ...prev, skills: [...prev.skills, val] }));
+                              }
+                              if (input) input.value = '';
+                            }}
+                            className="text-[10px] bg-electric-blue text-white px-3 py-1.5 rounded-xl font-black uppercase tracking-widest hover:bg-blue-600 transition-colors shrink-0"
+                          >
+                            Add
+                          </button>
+                        </div>
                       </div>
                     </div>
 
