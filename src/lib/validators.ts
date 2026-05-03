@@ -25,7 +25,7 @@ export const candidateProfileSchema = z.object({
   firstName: z.string().trim().min(2, "First name must be at least 2 characters").max(50),
   middleName: z.string().trim().max(50).optional().or(z.literal("")),
   lastName: z.string().trim().min(2, "Last name must be at least 2 characters").max(50),
-  nickName: z.string().trim().min(2, "Nick name must be at least 2 characters").max(50),
+  nickName: z.string().trim().max(50).optional().or(z.literal("")),
   fatherName: z.string().trim().min(2, "Father's name is required").max(100),
   rollNo: z.string().trim().min(1, "Roll number is required"),
   enrollmentYear: z.coerce.number().min(23).max(26),

@@ -124,7 +124,7 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="nickName" className="text-sm text-foreground">
-            Nick Name <span className="text-destructive">*</span>
+            Nick Name
           </Label>
           <Input
             id="nickName"
