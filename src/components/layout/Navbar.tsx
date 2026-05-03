@@ -84,7 +84,7 @@ export const Navbar = () => {
                   <motion.div
                     layoutId="nav-bg"
                     className={`absolute inset-0 rounded-xl -z-10 shadow-lg ${
-                      link.name === "My Profile" ? "bg-deep-indigo shadow-indigo-500/20" : "gradient-primary shadow-primary/20"
+                      link.name === "My Profile" ? "bg-deep-slate shadow-black/10" : "gradient-primary shadow-primary/20"
                     }`}
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />

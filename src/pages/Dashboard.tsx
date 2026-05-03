@@ -90,7 +90,7 @@ const Dashboard = () => {
         <header className="mb-8 flex justify-between items-end">
            <div className="flex items-center gap-4">
              <div>
-               <h1 className="text-[32px] font-bold text-[#111827] leading-none tracking-tight">SCHOLAR <span className="text-[#2563EB]">INTEL</span></h1>
+               <h1 className="text-[32px] font-bold text-[#111827] leading-none tracking-tight">SCHOLAR <span className="text-[#c0152a]">INTEL</span></h1>
                <p className="text-[12px] font-medium text-[#6B7280] uppercase tracking-widest mt-2">Real-time academic & professional overview</p>
              </div>
            </div>
@@ -146,7 +146,7 @@ const Dashboard = () => {
                     <h4 className="text-[17px] font-semibold text-[#111827] uppercase tracking-[0.05em]">Tech Stack</h4>
                     <button 
                       onClick={() => navigate("/profile#Skills-&-Socials")}
-                      className="text-[12px] font-medium text-[#6B7280] hover:text-[#2563EB] uppercase transition-colors"
+                      className="text-[12px] font-medium text-[#6B7280] hover:text-[#c0152a] uppercase transition-colors"
                     >
                       {skills.length > 0 ? "Update" : "Add"}
                     </button>
@@ -155,7 +155,7 @@ const Dashboard = () => {
                     <>
                       <div className="flex flex-wrap gap-2">
                         {(showAllSkills ? skills : skills.slice(0, 5)).map((skill: string, idx: number) => (
-                          <span key={idx} className="px-3 py-1.5 rounded-full bg-blue-50/80 text-[#2563EB] text-xs font-semibold border border-blue-100/50 shadow-sm">
+                          <span key={idx} className="px-3 py-1.5 rounded-full bg-rose-50/80 text-[#c0152a] text-xs font-semibold border border-rose-100/50 shadow-sm">
                             {skill}
                           </span>
                         ))}
@@ -163,7 +163,7 @@ const Dashboard = () => {
                       {skills.length > 5 && (
                         <button 
                           onClick={() => setShowAllSkills(!showAllSkills)}
-                          className="mt-4 text-[12px] font-medium text-[#2563EB] hover:text-blue-700 w-full text-center flex items-center justify-center gap-1 transition-colors"
+                          className="mt-4 text-[12px] font-medium text-[#c0152a] hover:text-rose-700 w-full text-center flex items-center justify-center gap-1 transition-colors"
                         >
                           {showAllSkills ? "Collapse Stack" : `View Full Stack (${skills.length})`}
                         </button>
@@ -323,7 +323,7 @@ const Dashboard = () => {
             <section className="space-y-5 mb-10">
               <div className="flex items-center justify-between px-4">
                 <h3 className="text-[17px] font-semibold text-[#111827] uppercase tracking-[0.1em] flex items-center gap-3">
-                  <User className="w-5 h-5 text-[#2563EB]" />
+                  <User className="w-5 h-5 text-[#c0152a]" />
                   EXECUTIVE BRIEF
                 </h3>
                 <button 
@@ -356,7 +356,7 @@ const Dashboard = () => {
             <section className="space-y-5 mb-10">
               <div className="flex items-center justify-between px-4">
                 <h3 className="text-[17px] font-semibold text-[#111827] uppercase tracking-[0.05em] flex items-center gap-3">
-                  <School className="w-5 h-5 text-[#2563EB]" />
+                  <School className="w-5 h-5 text-[#c0152a]" />
                   SCHOLASTIC MILESTONES
                 </h3>
                 <button 
@@ -372,13 +372,13 @@ const Dashboard = () => {
                   <motion.div 
                     key={sem.id} 
                     whileHover={{ y: -8, scale: 1.02 }}
-                    className="glass p-6 rounded-[2rem] border border-[#E5E7EB] hover:border-blue-200 transition-all flex flex-col md:flex-row items-center gap-6 group relative overflow-hidden"
+                    className="glass p-6 rounded-[2rem] border border-[#E5E7EB] hover:border-rose-200 transition-all flex flex-col md:flex-row items-center gap-6 group relative overflow-hidden"
                   >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-[100px] -z-10 group-hover:scale-110 transition-transform duration-700" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50/50 rounded-bl-[100px] -z-10 group-hover:scale-110 transition-transform duration-700" />
                     
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-blue-50 flex flex-col items-center justify-center shrink-0 border border-blue-100">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-rose-50 flex flex-col items-center justify-center shrink-0 border border-rose-100">
                       <span className="text-[10px] font-bold text-[#6B7280] uppercase">Sem</span>
-                      <span className="text-[24px] font-bold text-[#2563EB] leading-none">{sem.id}</span>
+                      <span className="text-[24px] font-bold text-[#c0152a] leading-none">{sem.id}</span>
                     </div>
                     
                     <div className="flex-1 text-center md:text-left">
@@ -392,7 +392,7 @@ const Dashboard = () => {
                           whileInView={{ width: `${(parseFloat(sem.cgpa) / 10) * 100}%` }}
                           viewport={{ once: true }}
                           transition={{ duration: 1, delay: 0.2 }}
-                          className="h-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB]"
+                          className="h-full bg-gradient-to-r from-[#c0152a] to-[#8b0f1e]"
                         />
                       </div>
                     </div>

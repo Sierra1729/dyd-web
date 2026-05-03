@@ -20,7 +20,7 @@ import {
   Legend
 } from "recharts";
 
-const COLORS = ["#8B5CF6", "#D946EF", "#F97316", "#0EA5E9", "#10B981"];
+const COLORS = ["#c0152a", "#e05a6a", "#1c1c1e", "#6b7280", "#10b981"];
 
 interface AnalyticsData {
   totalCandidates: number;
