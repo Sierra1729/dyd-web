@@ -120,6 +120,10 @@ router.post("/saveUser", verifyToken, async (req, res) => {
 
     const {
       fullName,
+      firstName,
+      middleName,
+      lastName,
+      nickName,
       fatherName,
       school,
       dob,
@@ -134,7 +138,7 @@ router.post("/saveUser", verifyToken, async (req, res) => {
     } = req.body;
 
     // 🔍 Debug log to confirm fields received
-    console.log("🔍 Fields received:", { rollNo, semester, enrollmentYear, domain, dob });
+    console.log("🔍 Fields received:", { rollNo, semester, enrollmentYear, domain, dob, firstName, lastName });
 
     const isAdminEmail = req.user.email.endsWith("@jammuuniversity.ac.in");
     const role = isAdminEmail ? "admin" : "candidate";
@@ -145,6 +149,10 @@ router.post("/saveUser", verifyToken, async (req, res) => {
       role,
 
       fullName: fullName || "",
+      firstName: firstName || "",
+      middleName: middleName || "",
+      lastName: lastName || "",
+      nickName: nickName || "",
       fatherName: fatherName || "",
       school: school || "",
       dob: dob ? new Date(dob).toISOString() : "",
@@ -235,6 +243,10 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
     const uid = req.user.uid;
     const {
       fullName,
+      firstName,
+      middleName,
+      lastName,
+      nickName,
       phone,
       dob,
       fatherName,
@@ -277,6 +289,10 @@ router.put("/updateProfile", verifyToken, async (req, res) => {
 
     const updatedData = {
       fullName: fullName !== undefined ? fullName : existing.fullName,
+      firstName: firstName !== undefined ? firstName : existing.firstName,
+      middleName: middleName !== undefined ? middleName : existing.middleName,
+      lastName: lastName !== undefined ? lastName : existing.lastName,
+      nickName: nickName !== undefined ? nickName : existing.nickName,
       phone: phone !== undefined ? phone : existing.phone,
       dob: dob !== undefined ? dob : existing.dob,
       fatherName: fatherName !== undefined ? fatherName : existing.fatherName,

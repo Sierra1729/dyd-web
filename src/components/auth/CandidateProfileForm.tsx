@@ -45,7 +45,11 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
       const token = await user.getIdToken(true);
 
       const userData = {
-        fullName: data.fullName,
+        fullName: `${data.firstName} ${data.middleName ? data.middleName + ' ' : ''}${data.lastName}`,
+        firstName: data.firstName,
+        middleName: data.middleName || "",
+        lastName: data.lastName,
+        nickName: data.nickName,
         fatherName: data.fatherName,
         rollNo: data.rollNo,
         enrollmentYear: Number(data.enrollmentYear),
@@ -78,24 +82,63 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="fullName" className="text-sm text-foreground">
-          Full Name
-        </Label>
-        <Input
-          id="fullName"
-          placeholder="Enter your full name"
-          {...register("fullName")}
-          className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
-        />
-        {errors.fullName && (
-          <p className="text-xs text-destructive">{errors.fullName.message}</p>
-        )}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="firstName" className="text-sm text-foreground">
+            First Name <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="firstName"
+            placeholder="First name"
+            {...register("firstName")}
+            className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
+          />
+          {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="middleName" className="text-sm text-foreground">
+            Middle Name
+          </Label>
+          <Input
+            id="middleName"
+            placeholder="Middle name"
+            {...register("middleName")}
+            className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
+          />
+          {errors.middleName && <p className="text-xs text-destructive">{errors.middleName.message}</p>}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="lastName" className="text-sm text-foreground">
+            Last Name <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="lastName"
+            placeholder="Last name"
+            {...register("lastName")}
+            className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
+          />
+          {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="nickName" className="text-sm text-foreground">
+            Nick Name <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="nickName"
+            placeholder="Nick name"
+            {...register("nickName")}
+            className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
+          />
+          {errors.nickName && <p className="text-xs text-destructive">{errors.nickName.message}</p>}
+        </div>
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="fatherName" className="text-sm text-foreground">
-          Father's Name
+          Father's Name <span className="text-destructive">*</span>
         </Label>
         <Input
           id="fatherName"
@@ -111,7 +154,7 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="rollNo" className="text-sm text-foreground">
-            Roll Number
+            Roll Number <span className="text-destructive">*</span>
           </Label>
           <Input
             id="rollNo"
@@ -126,7 +169,7 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
 
         <div className="space-y-1.5">
           <Label htmlFor="enrollmentYear" className="text-sm text-foreground">
-            Enrollment Year
+            Enrollment Year <span className="text-destructive">*</span>
           </Label>
           <select
             id="enrollmentYear"
@@ -148,7 +191,7 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
 
       <div className="space-y-1.5">
         <Label htmlFor="semester" className="text-sm text-foreground">
-          Current Semester
+          Current Semester <span className="text-destructive">*</span>
         </Label>
         <select
           id="semester"
@@ -170,7 +213,7 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
       {Number(watch("semester")) >= 5 && (
         <div className="space-y-1.5">
           <Label htmlFor="domain" className="text-sm text-foreground">
-            Major Domain
+            Major Domain <span className="text-destructive">*</span>
           </Label>
           <Input
             id="domain"
@@ -185,7 +228,7 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
       )}
 
       <div className="space-y-1.5">
-        <Label className="text-sm text-foreground">Date of Birth</Label>
+        <Label className="text-sm text-foreground">Date of Birth <span className="text-destructive">*</span></Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -221,7 +264,7 @@ export const CandidateProfileForm = ({ onSuccess }: CandidateProfileFormProps) =
 
       <div className="space-y-1.5">
         <Label htmlFor="phone" className="text-sm text-foreground">
-          Phone Number
+          Phone Number <span className="text-destructive">*</span>
         </Label>
         <Input
           id="phone"
