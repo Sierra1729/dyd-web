@@ -798,25 +798,25 @@ const Profile = () => {
                          <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-white border border-slate-100 items-start">
                            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                               <input 
-                                className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
+                                className="w-full text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-200 focus:border-electric-blue py-2 transition-colors"
                                 placeholder="Certification Name"
-                                value={cert.name}
+                                value={cert.name || ""}
                                 onChange={(e) => updateCertification(idx, "name", e.target.value)}
                               />
                               <input 
-                                className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
+                                className="w-full text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-200 focus:border-electric-blue py-2 transition-colors"
                                 placeholder="Issuer"
-                                value={cert.issuer}
+                                value={cert.issuer || ""}
                                 onChange={(e) => updateCertification(idx, "issuer", e.target.value)}
                               />
                               <input 
-                                className="text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-100 focus:border-electric-blue"
+                                className="w-full text-xs font-bold text-deep-slate bg-transparent outline-none border-b border-slate-200 focus:border-electric-blue py-2 transition-colors"
                                 placeholder="Year"
-                                value={cert.year}
+                                value={cert.year || ""}
                                 onChange={(e) => updateCertification(idx, "year", e.target.value)}
                               />
                            </div>
-                           <button onClick={() => removeCertification(idx)} className="p-2 text-slate-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                           <button onClick={() => removeCertification(idx)} className="p-2 mt-1 text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                          </div>
                        ))}
                      </div>
