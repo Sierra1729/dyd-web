@@ -88,9 +88,11 @@ const Dashboard = () => {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         
         <header className="mb-8 flex justify-between items-end">
-           <div>
-             <h1 className="text-3xl font-black text-deep-slate">STUDENT <span className="text-electric-blue">DASHBOARD</span></h1>
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Real-time academic & professional overview</p>
+           <div className="flex items-center gap-4">
+             <div>
+               <h1 className="text-[32px] font-bold text-[#111827] leading-none tracking-tight">SCHOLAR <span className="text-[#2563EB]">INTEL</span></h1>
+               <p className="text-[12px] font-medium text-[#6B7280] uppercase tracking-widest mt-2">Real-time academic & professional overview</p>
+             </div>
            </div>
            <button 
              onClick={() => auth.currentUser && fetchProfile(auth.currentUser, true)}
@@ -141,36 +143,39 @@ const Dashboard = () => {
 
                 <div className="pt-4 text-left px-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Top Skills</h4>
+                    <h4 className="text-[17px] font-semibold text-[#111827] uppercase tracking-[0.05em]">Tech Stack</h4>
                     <button 
                       onClick={() => navigate("/profile#Skills-&-Socials")}
-                      className="text-[10px] font-black text-slate-400 hover:text-electric-blue uppercase transition-colors"
+                      className="text-[12px] font-medium text-[#6B7280] hover:text-[#2563EB] uppercase transition-colors"
                     >
                       {skills.length > 0 ? "Update" : "Add"}
                     </button>
                   </div>
                   {skills.length > 0 ? (
                     <>
-                      <ul className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
                         {(showAllSkills ? skills : skills.slice(0, 5)).map((skill: string, idx: number) => (
-                          <li key={idx} className="flex items-center gap-2.5 text-sm text-slate-600 font-bold">
-                            <div className="w-1.5 h-1.5 rounded-full bg-electric-blue shrink-0" />
-                            <span className="truncate">{skill}</span>
-                          </li>
+                          <span key={idx} className="px-3 py-1.5 rounded-full bg-blue-50/80 text-[#2563EB] text-xs font-semibold border border-blue-100/50 shadow-sm">
+                            {skill}
+                          </span>
                         ))}
-                      </ul>
+                      </div>
                       {skills.length > 5 && (
                         <button 
                           onClick={() => setShowAllSkills(!showAllSkills)}
-                          className="mt-4 text-[10px] font-black text-electric-blue hover:text-blue-600 uppercase tracking-widest w-full text-center flex items-center justify-center gap-1 transition-colors"
+                          className="mt-4 text-[12px] font-medium text-[#2563EB] hover:text-blue-700 w-full text-center flex items-center justify-center gap-1 transition-colors"
                         >
-                          {showAllSkills ? "Show Less" : `View All (${skills.length})`}
-                          <ChevronRight className={`w-3 h-3 transition-transform ${showAllSkills ? "-rotate-90" : "rotate-90"}`} />
+                          {showAllSkills ? "Collapse Stack" : `View Full Stack (${skills.length})`}
                         </button>
                       )}
                     </>
                   ) : (
-                    <p className="text-xs text-slate-400 italic text-center py-2">No skills added yet.</p>
+                    <div className="flex flex-col items-center py-6 text-center border-2 border-dashed border-slate-100 rounded-2xl">
+                      <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center mb-2">
+                        <Award className="w-4 h-4 text-slate-300" />
+                      </div>
+                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">No stack defined</p>
+                    </div>
                   )}
                 </div>
 
@@ -340,12 +345,12 @@ const Dashboard = () => {
               </motion.div>
             )}
 
-            {/* Professional Summary */}
-            <section className="space-y-4">
+            {/* Executive Brief */}
+            <section className="space-y-5 mb-10">
               <div className="flex items-center justify-between px-4">
-                <h3 className="text-xl font-black flex items-center gap-3 text-deep-slate italic">
-                  <User className="w-6 h-6 text-electric-blue not-italic" />
-                  PROFESSIONAL SUMMARY
+                <h3 className="text-[17px] font-semibold text-[#111827] uppercase tracking-[0.1em] flex items-center gap-3">
+                  <User className="w-5 h-5 text-[#2563EB]" />
+                  EXECUTIVE BRIEF
                 </h3>
                 <button 
                   onClick={() => navigate("/profile#Profile-&-Bio")}
@@ -373,12 +378,12 @@ const Dashboard = () => {
               </motion.div>
             </section>
 
-            {/* Academic Journey */}
-            <section className="space-y-4">
+            {/* Scholastic Milestones */}
+            <section className="space-y-5 mb-10">
               <div className="flex items-center justify-between px-4">
-                <h3 className="text-xl font-black flex items-center gap-3 text-deep-slate italic">
-                  <School className="w-6 h-6 text-electric-blue not-italic" />
-                  ACADEMIC JOURNEY
+                <h3 className="text-[17px] font-semibold text-[#111827] uppercase tracking-[0.05em] flex items-center gap-3">
+                  <School className="w-5 h-5 text-[#2563EB]" />
+                  SCHOLASTIC MILESTONES
                 </h3>
                 <button 
                   onClick={() => navigate("/profile#Academic-Records")}
@@ -389,46 +394,32 @@ const Dashboard = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {semesters.filter((s: any) => s.cgpa).map((item: any, idx: number) => (
+                {semesters.filter((s: any) => s.cgpa).map((sem: any, idx: number) => (
                   <motion.div 
-                    key={idx}
+                    key={sem.id} 
                     whileHover={{ y: -8, scale: 1.02 }}
-                    className="glass p-8 rounded-[2rem] border border-slate-200 shadow-md hover:shadow-2xl transition-all group relative overflow-hidden"
+                    className="glass p-6 rounded-[2rem] border border-[#E5E7EB] hover:border-blue-200 transition-all flex flex-col md:flex-row items-center gap-6 group relative overflow-hidden"
                   >
-                    <div className="absolute top-0 left-0 w-1 h-full bg-electric-blue/20 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-500" />
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-electric-blue/10 transition-all group-hover:rotate-12">
-                        <GraduationCap className="w-6 h-6 text-slate-400 group-hover:text-electric-blue" />
-                      </div>
-                      {item.id === Number(userData?.semester) && (
-                        <span className="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
-                          Active Role
-                        </span>
-                      )}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-[100px] -z-10 group-hover:scale-110 transition-transform duration-700" />
+                    
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-blue-50 flex flex-col items-center justify-center shrink-0 border border-blue-100">
+                      <span className="text-[10px] font-bold text-[#6B7280] uppercase">Sem</span>
+                      <span className="text-[24px] font-bold text-[#2563EB] leading-none">{sem.id}</span>
                     </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1 italic">
-                        <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest">Tier Assessment</h4>
-                        {item.marksheetUrl && (
-                          <a 
-                            href={item.marksheetUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 hover:text-emerald-600 transition-colors uppercase tracking-widest"
-                          >
-                            <FileText className="w-3 h-3" />
-                            Marksheet
-                          </a>
-                        )}
+                    
+                    <div className="flex-1 text-center md:text-left">
+                      <div className="flex flex-col md:flex-row md:items-baseline gap-2 mb-1">
+                        <span className="text-sm font-semibold text-[#6B7280] uppercase tracking-wider">GPA / Score</span>
+                        <span className="text-[24px] font-bold text-[#111827] leading-none">{sem.cgpa || "N/A"}</span>
                       </div>
-                      <p className="text-xl font-black text-deep-slate mb-4">Semester {item.id < 10 ? `0${item.id}` : item.id}</p>
-                      
-                      <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
-                        <span className="text-4xl font-black text-electric-blue tracking-tighter">{item.cgpa}</span>
-                        <div className="space-y-0 text-left">
-                          <p className="text-[10px] font-black text-slate-300 uppercase leading-none">Cumulative</p>
-                          <p className="text-[10px] font-black text-slate-500 uppercase leading-none">GPA Metric</p>
-                        </div>
+                      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-3">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${(parseFloat(sem.cgpa) / 10) * 100}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 1, delay: 0.2 }}
+                          className="h-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB]"
+                        />
                       </div>
                     </div>
                   </motion.div>
