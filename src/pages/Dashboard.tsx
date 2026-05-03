@@ -217,32 +217,6 @@ const Dashboard = () => {
               </div>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="glass p-6 rounded-[2rem] border border-slate-200/50 shadow-sm"
-            >
-              <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4 pl-2">Portal Access</h3>
-              <nav className="space-y-1">
-                {[
-                  { name: "Examination Form", icon: FileText },
-                  { name: "Result Portal", icon: GraduationCap },
-                  { name: "Fee Receipts", icon: Database },
-                  { name: "Academic Calendar", icon: Calendar },
-                ].map((item) => (
-                  <button key={item.name} className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-slate-50 group transition-all text-left border border-transparent hover:border-slate-100">
-                    <div className="flex items-center gap-4">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-50 text-slate-400 group-hover:text-electric-blue group-hover:bg-electric-blue/10 transition-all">
-                        <item.icon className="w-4.5 h-4.5" />
-                      </div>
-                      <span className="text-sm font-bold text-slate-700 group-hover:text-deep-slate">{item.name}</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-electric-blue transition-all" />
-                  </button>
-                ))}
-              </nav>
-            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: -20 }}
