@@ -61,9 +61,9 @@ const Login = () => {
 
       } catch (err: any) {
         if (err.message === "User not found") {
-          // Profile not saved yet — direct to profile page to complete it
+          // Profile not saved yet — direct to complete-profile page to complete it
           toast.info("Please complete your profile details.");
-          navigate("/profile");
+          navigate("/complete-profile");
           return;
         }
         throw err;
