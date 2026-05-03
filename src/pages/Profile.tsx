@@ -56,6 +56,9 @@ const Profile = () => {
     professionalSummary: "",
     githubUrl: "",
     linkedinUrl: "",
+    instagramUrl: "",
+    scholarUrl: "",
+    researchField: "",
     photoURL: "",
     resumeURL: "",
     rollNo: "",
@@ -115,6 +118,9 @@ const Profile = () => {
         professionalSummary: profile.professionalSummary || "",
         githubUrl: profile.githubUrl || "",
         linkedinUrl: profile.linkedinUrl || "",
+        instagramUrl: profile.instagramUrl || "",
+        scholarUrl: profile.scholarUrl || "",
+        researchField: profile.researchField || "",
         photoURL: profile.photoURL || "",
         resumeURL: profile.resumeURL || "",
         rollNo: profile.rollNo || "",
@@ -739,7 +745,17 @@ const Profile = () => {
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Primary Research Field / Domain</label>
+                        <input 
+                          className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-deep-slate focus:border-electric-blue transition-all"
+                          value={formData.researchField}
+                          onChange={(e) => updateField("researchField", e.target.value)}
+                          placeholder="e.g. Artificial Intelligence, Quantum Computing"
+                        />
+                      </div>
+                      
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">GitHub Profile URL</label>
                         <div className="relative">
@@ -763,6 +779,32 @@ const Profile = () => {
                             value={formData.linkedinUrl}
                             onChange={(e) => updateField("linkedinUrl", e.target.value)}
                             placeholder="https://linkedin.com/in/username"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Google Scholar URL</label>
+                        <div className="relative">
+                          <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                          <input 
+                            type="url"
+                            className="w-full pl-11 pr-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-deep-slate focus:border-electric-blue transition-all"
+                            value={formData.scholarUrl}
+                            onChange={(e) => updateField("scholarUrl", e.target.value)}
+                            placeholder="https://scholar.google.com/citations?user=..."
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Instagram URL</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-300">@</span>
+                          <input 
+                            type="url"
+                            className="w-full pl-11 pr-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-deep-slate focus:border-electric-blue transition-all"
+                            value={formData.instagramUrl}
+                            onChange={(e) => updateField("instagramUrl", e.target.value)}
+                            placeholder="https://instagram.com/username"
                           />
                         </div>
                       </div>

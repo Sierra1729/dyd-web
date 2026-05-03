@@ -8,7 +8,8 @@ import {
   User, Mail, Phone, Calendar, School, Landmark, ChevronRight, 
   ShieldCheck, Github, Linkedin, Briefcase, Award, FileText, 
   Download, Upload, ExternalLink, GraduationCap, MapPin, 
-  Database, Layout, Server, Clock, XCircle, RefreshCcw
+  Database, Layout, Server, Clock, XCircle, RefreshCcw,
+  Instagram, BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -125,9 +126,12 @@ const Dashboard = () => {
                 
                 <div className="space-y-1">
                   <h2 className="text-2xl font-black text-deep-slate tracking-tight">{userData?.fullName || "Candidate"}</h2>
-                  <p className="text-[10px] font-black text-electric-blue uppercase tracking-[0.2em] border border-electric-blue/20 rounded-lg inline-block px-3 py-1">
+                  <p className="text-[10px] font-black text-electric-blue uppercase tracking-[0.2em] border border-electric-blue/20 rounded-lg inline-block px-3 py-1 mb-1">
                     {userData?.semester ? `Semester ${userData.semester}` : "LEVEL 0"}
                   </p>
+                  {userData?.researchField && (
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{userData.researchField}</p>
+                  )}
                   <div className="pt-2">
                     <p className="text-[10px] font-bold text-slate-400 flex items-center justify-center gap-1.5 uppercase">
                       <MapPin className="w-3 h-3" /> Jammu, India
@@ -243,24 +247,57 @@ const Dashboard = () => {
             >
               <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4 pl-2">Sync Connect</h3>
               <div className="grid grid-cols-2 gap-4">
-                <a 
-                  href={userData?.githubUrl || "#"} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-3xl bg-slate-900 text-white hover:bg-black transition-all hover:-translate-y-1 shadow-lg shadow-black/10"
-                >
-                  <Github className="w-5 h-5" />
-                  <span className="text-[10px] font-black uppercase">GitHub</span>
-                </a>
-                <a 
-                  href={userData?.linkedinUrl || "#"} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-3xl bg-[#0077b5] text-white hover:bg-[#005582] transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/10"
-                >
-                  <Linkedin className="w-5 h-5" />
-                  <span className="text-[10px] font-black uppercase">LinkedIn</span>
-                </a>
+                {userData?.githubUrl && (
+                  <a 
+                    href={userData.githubUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center gap-2 p-4 rounded-3xl bg-slate-900 text-white hover:bg-black transition-all hover:-translate-y-1 shadow-lg shadow-black/10"
+                  >
+                    <Github className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">GitHub</span>
+                  </a>
+                )}
+                {userData?.linkedinUrl && (
+                  <a 
+                    href={userData.linkedinUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center gap-2 p-4 rounded-3xl bg-[#0077b5] text-white hover:bg-[#005582] transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/10"
+                  >
+                    <Linkedin className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">LinkedIn</span>
+                  </a>
+                )}
+                {userData?.instagramUrl && (
+                  <a 
+                    href={userData.instagramUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center gap-2 p-4 rounded-3xl bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] text-white hover:opacity-90 transition-all hover:-translate-y-1 shadow-lg shadow-pink-500/20"
+                  >
+                    <Instagram className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Instagram</span>
+                  </a>
+                )}
+                {userData?.scholarUrl && (
+                  <a 
+                    href={userData.scholarUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center gap-2 p-4 rounded-3xl bg-[#4285F4] text-white hover:bg-[#3367D6] transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/20"
+                  >
+                    <BookOpen className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Scholar</span>
+                  </a>
+                )}
+                
+                {!userData?.githubUrl && !userData?.linkedinUrl && !userData?.instagramUrl && !userData?.scholarUrl && (
+                  <div className="col-span-2 py-6 flex flex-col items-center gap-2 text-slate-300">
+                    <Layout className="w-8 h-8 opacity-50" />
+                    <p className="text-[10px] font-black uppercase tracking-widest italic">No socials linked</p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </aside>
