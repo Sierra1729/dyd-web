@@ -1,0 +1,163 @@
+const API_URL = import.meta.env.VITE_API_URL || (
+  window.location.hostname === "localhost" 
+    ? "http://localhost:5000/api" 
+    : "https://dyd-web.onrender.com/api"
+);
+
+async function request(endpoint: string, options: RequestInit) {
+  try {
+    const res = await fetch(`${API_URL}${endpoint}`, options);
+
+    // 🔥 IMPORTANT: handle non-JSON responses
+    const text = await res.text();
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error("❌ Not JSON response:", text);
+      throw new Error("Server returned invalid response");
+    }
+
+    if (!res.ok) {
+      throw new Error(data.message || "Something went wrong");
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("API Error:", error.message);
+    throw error;
+  }
+}
+
+export const apiService = {
+  // ✅ SAVE USER (Registration)
+  saveUser: (data: any, token: string) =>
+    request("/saveUser", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    }),
+
+  // ✅ GET USER PROFILE
+  getUser: (token: string) =>
+    request("/getUser", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+
+  // 🔐 Get all candidates (admin)
+  getAllCandidates: (token: string) =>
+    request("/allCandidates", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+
+  // 🔐 Delete candidate (admin)
+  deleteCandidate: (id: string, token: string) =>
+    request(`/candidate/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+
+  // 🔐 Update candidate (admin)
+  updateCandidate: (id: string, data: any, token: string) =>
+    request(`/candidate/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    }),
+
+  // 🔐 Get analytics (admin)
+  getAnalytics: (token: string) =>
+    request("/analytics", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+
+  // 🔐 Update OWN profile
+  updateProfile: (data: any, token: string) =>
+    request("/updateProfile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    }),
+
+  // 🔐 Approve candidate (admin)
+
+  // 🔐 Approve candidate (admin)
+  approveCandidate: (id: string, token: string) =>
+    request(`/candidate/${id}/approve`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+
+  // 🔐 Reject candidate (admin)
+  rejectCandidate: (id: string, remarks: string, token: string) =>
+    request(`/candidate/${id}/reject`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ remarks }),
+    }),
+
+  // 🔐 Upload Marksheet
+  uploadMarksheet: (file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("marksheet", file);
+    return request("/upload/marksheet", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
+
+  // 🔐 Upload Profile Photo
+  uploadProfilePhoto: (file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+    return request("/upload/profile-photo", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
+
+  // 🔐 Upload Resume
+  uploadResume: (file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("resume", file);
+    return request("/upload/resume", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
+};
