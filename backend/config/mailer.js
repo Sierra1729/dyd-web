@@ -2,13 +2,17 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 console.log("ENV CHECK:", process.env.SMTP_USER);
+
+const SMTP_USER = process.env.SMTP_USER || "pawandeep15dyd23@jammuuniversity.ac.in";
+const SMTP_PASS = process.env.SMTP_PASS || "ppvb jdtn clfk iqjs";
+
 // 📧 Create transporter
-// Note: You must provide your own SMTP credentials in .env
+// Note: You can provide your own SMTP credentials in .env (SMTP_USER, SMTP_PASS)
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.SMTP_USER || "alpha.bravo0796@gmail.com",
-    pass: process.env.SMTP_PASS || "hsxq smgq pget kdmf",
+    user: SMTP_USER,
+    pass: SMTP_PASS,
   },
 });
 
@@ -21,9 +25,6 @@ transporter.verify(function (error, success) {
   }
 });
 
-
-
-
 /**
  * Send approval email to candidate
  * @param {string} to - Candidate email
@@ -33,13 +34,13 @@ const sendApprovalEmail = async (to, name) => {
   try {
     console.log(`📡 Attempting to send approval email to: ${to}`);
     const info = await transporter.sendMail({
-      from: `"Cosmic Gateway Admins" <alpha.bravo0796@gmail.com>`,
+      from: `"Team Design Your Degree" <${SMTP_USER}>`,
       to,
       subject: "Profile Approved 🎉",
 
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <h2 style="color: #6366f1;">Welcome to Cosmic Gateway!</h2>
+          <h2 style="color: #6366f1;">Welcome to Design Your Degree!</h2>
           <p>Hi <strong>${name}</strong>,</p>
           <p>We are excited to inform you that your profile has been <strong>approved</strong> by our administration team.</p>
           <p>You can now log in to access your dashboard and explore all the features of academic portal.</p>
@@ -49,7 +50,7 @@ const sendApprovalEmail = async (to, name) => {
                Login to Dashboard
             </a>
           </div>
-          <p>Best regards,<br>The Cosmic Gateway Team</p>
+          <p>Best regards,<br>Team Design Your Degree</p>
         </div>
       `,
     });
@@ -71,7 +72,7 @@ const sendRejectionEmail = async (to, name, remarks) => {
   try {
     console.log(`📡 Attempting to send rejection email to: ${to}`);
     const info = await transporter.sendMail({
-      from: `"Cosmic Gateway Admins" <alpha.bravo0796@gmail.com>`,
+      from: `"Team Design Your Degree" <${SMTP_USER}>`,
       to,
       subject: "Action Required: Profile Status Update ⚠️",
 
@@ -79,7 +80,7 @@ const sendRejectionEmail = async (to, name, remarks) => {
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <h2 style="color: #ef4444;">Status Update Regarding Your Profile</h2>
           <p>Hi <strong>${name}</strong>,</p>
-          <p>Thank you for your interest in the Cosmic Gateway academic portal.</p>
+          <p>Thank you for your interest in the Design Your Degree academic portal.</p>
           <p>After reviewing your profile, our administration team has decided not to approve it at this time.</p>
           
           <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0;">
@@ -96,7 +97,7 @@ const sendRejectionEmail = async (to, name, remarks) => {
             </a>
           </div>
           <p>If you have any questions, please reply to this email.</p>
-          <p>Best regards,<br>The Cosmic Gateway Team</p>
+          <p>Best regards,<br>Team Design Your Degree</p>
         </div>
       `,
     });
@@ -114,10 +115,10 @@ const sendRejectionEmail = async (to, name, remarks) => {
  */
 const sendAdminNewUserAuthNotification = async (userData) => {
   try {
-    const adminEmail = "alpha.bravo1729@gmail.com";
+    const adminEmail = process.env.ADMIN_ALERT_EMAIL || "pawandeep15dyd23@jammuuniversity.ac.in";
     console.log(`📡 Attempting to send ADMIN ALERT to: ${adminEmail} for user: ${userData.email}`);
     const info = await transporter.sendMail({
-      from: `"Cosmic Gateway System" <alpha.bravo0796@gmail.com>`,
+      from: `"Team Design Your Degree" <${SMTP_USER}>`,
       to: adminEmail,
       subject: "New User Registration Alert 🚨",
 
@@ -140,7 +141,7 @@ const sendAdminNewUserAuthNotification = async (userData) => {
                Go to Admin Panel
             </a>
           </div>
-          <p>This is an automated system notification.</p>
+          <p>This is an automated notification from Team Design Your Degree.</p>
         </div>
       `,
     });
@@ -152,10 +153,8 @@ const sendAdminNewUserAuthNotification = async (userData) => {
   }
 };
 
-
 module.exports = { 
   sendApprovalEmail, 
   sendRejectionEmail, 
   sendAdminNewUserAuthNotification 
 };
-
