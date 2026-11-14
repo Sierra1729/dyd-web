@@ -159,13 +159,14 @@ router.post("/saveUser", verifyToken, async (req, res) => {
     // 🔍 Debug log to confirm fields received
     console.log("🔍 Fields received:", { rollNo, semester, enrollmentYear, domain, dob, firstName, lastName });
 
-    const isAdminEmail = req.user.email.endsWith("@jammuuniversity.ac.in");
-    const role = isAdminEmail ? "admin" : "candidate";
+    // 🔐 Public self-registration is strictly for candidates.
+    // Administrators are provisioned directly in the backend/database in the 'admins' collection.
+    const role = "candidate";
 
     const userData = {
       uid: req.user.uid,
       email: req.user.email,
-      role,
+      role: "candidate",
 
       fullName: fullName || "",
       firstName: firstName || "",
@@ -187,30 +188,27 @@ router.post("/saveUser", verifyToken, async (req, res) => {
       interests: Array.isArray(interests) ? interests : [],
       specializations: Array.isArray(specializations) ? specializations : [],
 
-      // ✅ Approval System Fields
-      isApproved: role === "admin" ? true : false,
-      status: role === "admin" ? "approved" : "pending",
-      approvedAt: role === "admin" ? new Date().toISOString() : null,
+      // ✅ Approval System Fields (Candidates require admin approval)
+      isApproved: false,
+      status: "pending",
+      approvedAt: null,
 
       createdAt: new Date().toISOString(),
     };
 
     console.log("💾 Saving to Firestore:", JSON.stringify(userData, null, 2));
 
-    const collectionName = role === "admin" ? "admins" : "candidates";
+    const collectionName = "candidates";
     await db.collection(collectionName).doc(req.user.uid).set(userData);
 
-    console.log("✅ Successfully saved user:", req.user.uid);
+    console.log("✅ Successfully saved candidate user:", req.user.uid);
 
     // 📧 Notify Admin (Async)
-    if (role === "candidate") {
-      sendAdminNewUserAuthNotification(userData).catch(err => console.error("❌ Notification error:", err));
-    }
-
+    sendAdminNewUserAuthNotification(userData).catch(err => console.error("❌ Notification error:", err));
 
     return res.json({
       success: true,
-      message: `${role} registered successfully`,
+      message: "Candidate registered successfully",
       data: userData,
     });
 

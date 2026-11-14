@@ -1,18 +1,11 @@
-import { useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { auth } from "../firebase";
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { AuthToggle } from "@/components/auth/AuthToggle";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { ArrowLeft } from "lucide-react";
 
 const Register = () => {
-  const [searchParams] = useSearchParams();
-  const initialRole = searchParams.get("role") === "admin" ? "admin" : "candidate";
-  const [role, setRole] = useState<"candidate" | "admin">(initialRole);
-
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 py-12">
       <CosmicBackground />
@@ -33,25 +26,14 @@ const Register = () => {
         <GlassCard className="space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Create your account
+              Create Candidate Account
             </h1>
             <p className="text-sm text-muted-foreground">
-              Choose your role to get started
+              Enter your details to register as a student for Design Your Degree
             </p>
           </div>
 
-          <div className="flex justify-center">
-            <AuthToggle value={role} onChange={setRole} />
-          </div>
-
-          <motion.div
-            key={role}
-            initial={{ opacity: 0, x: role === "admin" ? 20 : -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <SignUpForm role={role} />
-          </motion.div>
+          <SignUpForm role="candidate" />
 
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}

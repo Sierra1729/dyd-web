@@ -60,7 +60,7 @@ const Index = () => {
             </GlassCard>
           </Link>
 
-          <Link to="/register?role=admin" className="group">
+          <Link to="/login" className="group">
             <GlassCard className="h-full flex flex-col items-center text-center gap-4 cursor-pointer group-hover:-translate-y-2 transition-transform duration-300">
               <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20">
                 <ShieldCheck className="w-7 h-7 text-accent-foreground" />
@@ -68,11 +68,11 @@ const Index = () => {
               <div>
                 <h3 className="text-lg font-semibold text-foreground">Admin Portal</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Manage departments, verify candidates and oversee institutional operations
+                  Institutional access for designated administrators to oversee departments and candidates
                 </p>
               </div>
               <span className="inline-flex items-center gap-1 text-sm font-medium text-accent group-hover:gap-2 transition-all">
-                Access portal <ArrowRight className="w-4 h-4" />
+                Sign in to Admin <ArrowRight className="w-4 h-4" />
               </span>
             </GlassCard>
           </Link>

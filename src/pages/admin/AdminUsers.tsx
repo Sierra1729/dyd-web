@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase";
 import { motion, AnimatePresence } from "framer-motion";
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
@@ -29,6 +30,7 @@ interface UserData {
 }
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -49,12 +51,22 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       const user = auth.currentUser;
-      if (!user) return;
+      if (!user) {
+        navigate("/login");
+        return;
+      }
       const token = await user.getIdToken();
+      const profile = await apiService.getUser(token);
+      if (profile.role !== "admin") {
+        toast.error("Access denied: Admin privileges required.");
+        navigate("/dashboard");
+        return;
+      }
       const data = await apiService.getAllCandidates(token);
       setUsers(data);
     } catch (error) {
-      toast.error("Failed to fetch users");
+      toast.error("Access denied or failed to fetch users");
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }

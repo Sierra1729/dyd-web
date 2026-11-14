@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase";
 import { motion } from "framer-motion";
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
 import { Navbar } from "@/components/layout/Navbar";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { apiService } from "@/services/api";
+import { toast } from "sonner";
 import { Users, School, Landmark, TrendingUp } from "lucide-react";
 import { 
   BarChart, 
@@ -31,19 +33,32 @@ interface AnalyticsData {
 }
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchAnalytics = async () => {
     try {
       const user = auth.currentUser;
-      if (!user) return;
+      if (!user) {
+        navigate("/login");
+        return;
+      }
       
       const token = await user.getIdToken();
+      const profile = await apiService.getUser(token);
+      if (profile.role !== "admin") {
+        toast.error("Access denied: Admin privileges required.");
+        navigate("/dashboard");
+        return;
+      }
+
       const result = await apiService.getAnalytics(token);
       setData(result);
     } catch (error) {
       console.error("Failed to fetch analytics:", error);
+      toast.error("Access denied: Admin only.");
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }

@@ -39,8 +39,8 @@ export const SignUpForm = ({ role }: SignUpFormProps) => {
   const onSubmit = async (data: any) => {
     setLoading(true);
     try {
-      if (role === "admin" && !data.email.endsWith("@jammuuniversity.ac.in")) {
-        toast.error("Only @jammuuniversity.ac.in emails are allowed");
+      if (role === "admin") {
+        toast.error("Admin registration is closed. Administrators are added directly by the database owner.");
         return;
       }
 
